@@ -11,3 +11,30 @@ connection: roof1-roof2
 connection: roof2-goal
 connection: corridorA-tunnelB [max_link_capacity=2]
 connection: tunnelB-goal 
+
+
+# {
+#     "hubs": {
+#         "hub": {"coord": (0, 0), "metadata": {"color": "green"}},
+#         "goal": {"coord": (1, 10), "metadata": {"color": "yellow"}},
+#         "roof1": {"coord": (3, 5), "metadata": {"zone": "restricted", "color": "red"}},
+#         "roof2": {"coord": (6, 2), "metadata": {"zone": "normal", "color": "blue"}},
+#         "corridorA": {
+#             "coord": (4, 3),
+#             "metadata": {"zone": "priority", "color": "green", "max_drones": 2},
+#         },
+#         "tunnelB": {"coord": (7, 4), "metadata": {"zone": "normal", "color": "red"}},
+#         "obstacleX": {
+#             "coord": (5, 5),
+#             "metadata": {"zone": "blocked", "color": "gray"},
+#         },
+#     },
+#     "connections": {
+#         "hub-roof1": {},
+#         "hub-corridorA": {},
+#         "roof1-roof2": {},
+#         "roof2-goal": {},
+#         "corridorA-tunnelB": {"metadata": {"max_link_capacity": 2}},
+#         "tunnelB-goal": {},
+#     },
+# }
