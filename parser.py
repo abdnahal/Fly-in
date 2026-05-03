@@ -1,4 +1,5 @@
 from typing import Dict
+from hub import Hub
 import sys
 import re
 
@@ -44,8 +45,7 @@ class ConfigParser:
                             }
                             metadata = self._parse_metadata(parts[1])
                             if metadata:
-                                self.data["hubs"]
-                                [hub_name]["metadata"] = metadata
+                                self.data["hubs"][hub_name]["metadata"] = metadata
 
                         else:
                             data = parts[1].strip().split(maxsplit=1)
@@ -64,3 +64,16 @@ class ConfigParser:
             print(e)
             sys.exit(1)
         return self.data
+
+    def get_hubs_as_graph(self):
+        graph = []
+        for key in self.data['connections'].keys():
+            parts = key.split('-')
+            if 'max_link_capacity' in self.data['connections'][key].keys():
+                graph.append([Hub(self.data['hubs'][parts[0]]),
+                             Hub(self.data['hubs'][parts[1]]),
+                             self.data['connections'][key]['max_link_capacity']])
+            else:
+                graph.append([Hub(self.data['hubs'][parts[0]]),
+                             Hub(self.data['hubs'][parts[1]])])
+        return graph

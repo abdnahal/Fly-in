@@ -22,9 +22,6 @@ class display():
 
             self.screen.fill('white')
             self.screen.blit(self.backgroud, (0, 0))
-            for key in self.hubs.keys():
-                x, y = self.hubs[key]['coord']
-                self.screen.blit(self.hub, (x * 70, y * 70))
             hub_w, hub_h = self.hub.get_size()
             for key in self.connections:
                 parts = key.split('-')
@@ -33,4 +30,7 @@ class display():
                 pos1 = (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
                 pos2 = (i * 70 + hub_w // 2, j * 70 + hub_h // 2)
                 pygame.draw.line(self.screen, 'green', pos1, pos2, 3)
+            for key in self.hubs.keys():
+                x, y = self.hubs[key]['coord']
+                self.screen.blit(self.hub, (x * 70, y * 70))
             pygame.display.flip()
