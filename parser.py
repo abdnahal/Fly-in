@@ -67,13 +67,51 @@ class ConfigParser:
 
     def get_hubs_as_graph(self):
         graph = []
-        for key in self.data['connections'].keys():
-            parts = key.split('-')
-            if 'max_link_capacity' in self.data['connections'][key].keys():
-                graph.append([Hub(self.data['hubs'][parts[0]]),
-                             Hub(self.data['hubs'][parts[1]]),
-                             self.data['connections'][key]['max_link_capacity']])
+        for key in self.data["connections"].keys():
+            parts = key.split("-")
+            if "metadata" in self.data["connections"][key].keys():
+                graph.append(
+                    [
+                        Hub(parts[0], self.data["hubs"][parts[0]]),
+                        Hub(parts[1], self.data["hubs"][parts[1]]),
+                        self.data["connections"][key]["metadata"]["max_link_capacity"],
+                    ]
+                )
             else:
-                graph.append([Hub(self.data['hubs'][parts[0]]),
-                             Hub(self.data['hubs'][parts[1]])])
+                graph.append(
+                    [
+                        Hub(parts[0], self.data["hubs"][parts[0]]),
+                        Hub(parts[1], self.data["hubs"][parts[1]]),
+                    ]
+                )
         return graph
+
+    @staticmethod
+    def build_adjacency(connections: list[list]) -> dict[str, list[tuple[str, int]]]:
+
+        adjacency: dict[str, list[tuple[str, int]]] = {}
+
+        for connection in connections:
+            zone_a: str = connection[0]
+            zone_b: str = connection[1]
+            capacity: int = connection[2] if len(connection) == 3 else 1
+            if zone_a in adjacency.keys():
+                adjacency[zone_a].append((zone_b, capacity))
+            else:
+                adjacency[zone_a] = [(zone_b, capacity)]
+            if zone_b in adjacency.keys():
+                adjacency[zone_b].append((zone_a, capacity))
+            else:
+                adjacency[zone_b] = [(zone_a, capacity)]
+
+        return adjacency
+
+
+{
+    "hub": [("roof1", 1), ("corridorA", 1)],
+    "roof1": [("hub", 1), ("roof2", 1)],
+    "corridorA": [("hub", 1), ("tunnelB", 2)],
+    "roof2": [("roof1", 1), ("goal", 1)],
+    "goal": [("roof2", 1), ("tunnelB", 1)],
+    "tunnelB": [("corridorA", 2), ("goal", 1)],
+}

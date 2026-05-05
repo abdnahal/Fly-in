@@ -2,8 +2,9 @@ from typing import Dict, List, Tuple
 
 
 class Hub:
-    def __init__(self, hub: Dict[str, Dict]):
+    def __init__(self, name: str, hub: Dict[str, Dict]):
         self.hub = hub
+        self.name = name
         self.coord = hub['coord']
         if 'zone' in hub['metadata'].keys():
             if hub['metadata']['zone'] == 'blocked':
@@ -14,3 +15,4 @@ class Hub:
             self.color = hub['metadata']['color']
         else:
             self.color = None
+    
