@@ -1,18 +1,20 @@
-from typing import Dict, List, Tuple
+from typing import Dict, Any
 
 
 class Hub:
-    def __init__(self, name: str, hub: Dict[str, Dict]):
+    def __init__(self, name: str, hub: Dict[str, Any]):
         self.hub = hub
         self.name = name
         self.coord = hub['coord']
-        if 'zone' in hub['metadata'].keys():
-            if hub['metadata']['zone'] == 'blocked':
+        metadata = hub.get('metadata', {})
+        if 'zone' in metadata.keys():
+            if metadata['zone'] == 'blocked':
                 self.cost = -float('inf')
             else:
-                self.cost = 2 if hub['metadata']['zone'] == 'restricted' else 1
-        if hub['metadata']['color']:
-            self.color = hub['metadata']['color']
+                self.cost = 2 if metadata['zone'] == 'restricted' else 1
+        else:
+            self.cost = 1
+        if metadata.get('color'):
+            self.color = metadata['color']
         else:
             self.color = None
-    

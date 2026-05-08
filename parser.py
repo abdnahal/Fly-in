@@ -87,7 +87,8 @@ class ConfigParser:
         return graph
 
     @staticmethod
-    def build_adjacency(connections: list[list]) -> dict[str, list[tuple[str, int]]]:
+    def build_adjacency(connections: list[list]) -> dict[
+                            str, list[tuple[str, int]]]:
 
         adjacency: dict[str, list[tuple[str, int]]] = {}
 
@@ -105,6 +106,12 @@ class ConfigParser:
                 adjacency[zone_b] = [(zone_a, capacity)]
 
         return adjacency
+
+    def get_objects(self):
+        objects = []
+        for key, value in self.data['hubs'].items():
+            objects.append(Hub(key, value))
+        return objects
 
 
 {

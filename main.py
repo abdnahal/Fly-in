@@ -1,7 +1,7 @@
 from parser import ConfigParser
 from display import display
 from hub import Hub
-# from Pathfinder import PathFinder
+from Pathfinder import PathFinder
 
 
 if __name__ == "__main__":
@@ -16,7 +16,6 @@ if __name__ == "__main__":
             adj.append(hub.name if isinstance(hub, Hub) else hub)
         new_graph.append(adj)
     adjacency = data.build_adjacency(new_graph)
-    print(adjacency)
-    # path = PathFinder(adjacency).astar()
+    path = PathFinder(adjacency, data.parse()['hubs'])
+    print(path.astar(data.get_objects()[0], data.get_objects()[1]))
     display.display_hubs()
-
