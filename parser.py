@@ -27,13 +27,16 @@ class ConfigParser:
             with open(self.config, "r") as f:
                 self.data["hubs"] = {}
                 self.data["connections"] = {}
-                for line in f:
+                for i, line in enumerate(f):
                     if not line.strip() or line.startswith("#"):
                         continue
                     else:
                         parts = line.split(":", maxsplit=1)
                         if len(parts) != 2:
                             raise ValueError(f"Invalid format: {line}")
+                        if i == 0:
+                            self.data[parts[0]] = int(parts[1])
+                            continue
                         if parts[0].lower() != "connection":
                             data = parts[1].strip().split(maxsplit=3)
                             if len(data) < 3:
@@ -45,7 +48,8 @@ class ConfigParser:
                             }
                             metadata = self._parse_metadata(parts[1])
                             if metadata:
-                                self.data["hubs"][hub_name]["metadata"] = metadata
+                                self.data["hubs"][hub_name
+                                                  ]["metadata"] = metadata
 
                         else:
                             data = parts[1].strip().split(maxsplit=1)
@@ -74,7 +78,8 @@ class ConfigParser:
                     [
                         Hub(parts[0], self.data["hubs"][parts[0]]),
                         Hub(parts[1], self.data["hubs"][parts[1]]),
-                        self.data["connections"][key]["metadata"]["max_link_capacity"],
+                        self.data["connections"][
+                            key]["metadata"]["max_link_capacity"],
                     ]
                 )
             else:
@@ -112,13 +117,3 @@ class ConfigParser:
         for key, value in self.data['hubs'].items():
             objects.append(Hub(key, value))
         return objects
-
-
-{
-    "hub": [("roof1", 1), ("corridorA", 1)],
-    "roof1": [("hub", 1), ("roof2", 1)],
-    "corridorA": [("hub", 1), ("tunnelB", 2)],
-    "roof2": [("roof1", 1), ("goal", 1)],
-    "goal": [("roof2", 1), ("tunnelB", 1)],
-    "tunnelB": [("corridorA", 2), ("goal", 1)],
-}

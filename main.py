@@ -6,7 +6,6 @@ from Pathfinder import PathFinder
 
 if __name__ == "__main__":
     data = ConfigParser('file.txt', {})
-    display = display(data.parse()['hubs'], data.parse()['connections'])
     graph = data.get_hubs_as_graph()
     i = 0
     new_graph = []
@@ -16,6 +15,10 @@ if __name__ == "__main__":
             adj.append(hub.name if isinstance(hub, Hub) else hub)
         new_graph.append(adj)
     adjacency = data.build_adjacency(new_graph)
-    path = PathFinder(adjacency, data.parse()['hubs'])
-    print(path.astar(data.get_objects()[0], data.get_objects()[1]))
+    hubs = data.parse()['hubs']
+    connections = data.parse()['connections']
+    objects = data.get_objects()
+    path_finder = PathFinder(adjacency, hubs)
+    path = path_finder.astar(objects[0], objects[1])
+    display = display(hubs, connections, path)
     display.display_hubs()
