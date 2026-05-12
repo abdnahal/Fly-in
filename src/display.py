@@ -1,10 +1,11 @@
 import pygame
 from typing import Dict, List
+from drone import Drone
 
 
 class display():
     def __init__(self, hubs: Dict[str, Dict], connections: Dict[str, Dict],
-                 path: List[str]):
+                 drones: List[Drone], path: List[str]):
         self.hubs = hubs
         self.connections = connections
         pygame.init()
@@ -16,14 +17,19 @@ class display():
         self.hub = pygame.image.load("morocco.png").convert_alpha()
         self.drone = pygame.image.load("drone.png").convert_alpha()
         self.path = path
+        self.drones = drones
 
     def _hub_center(self, hub_name: str) -> tuple[float, float]:
         hub_w, hub_h = self.hub.get_size()
-        x, y = self.hubs[hub_name]['coord']
+        x, y = self.hubs[hub_name].coord
         return (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
 
     def _build_route_points(self) -> List[tuple[float, float]]:
         return [self._hub_center(hub_name) for hub_name in self.path]
+
+    def get_drone(self):
+        for drone in self.drones:
+            yield drone
 
     def display_hubs(self):
         if not self.path or len(self.path) < 2:
@@ -32,10 +38,8 @@ class display():
         running = True
         route_points = self._build_route_points()
         segment_index = 0
-        speed = 0.01
-        t = 0.0
         clock = pygame.time.Clock()
-
+        print(drone.path[drone.segment_index] for drone in self.drones)
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -46,31 +50,38 @@ class display():
             hub_w, hub_h = self.hub.get_size()
             for key in self.connections:
                 parts = key.split('-')
-                x, y = self.hubs[parts[0]]['coord']
-                i, j = self.hubs[parts[1]]['coord']
+                x, y = self.hubs[parts[0]].coord
+                i, j = self.hubs[parts[1]].coord
                 pos1 = (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
                 pos2 = (i * 70 + hub_w // 2, j * 70 + hub_h // 2)
                 pygame.draw.line(self.screen, 'green', pos1, pos2, 3)
             for key in self.hubs.keys():
-                x, y = self.hubs[key]['coord']
+                x, y = self.hubs[key].coord
                 pos = (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
                 pygame.draw.circle(
                     self.screen,
-                    self.hubs[key]['metadata']['color'], pos, 50)
+                    self.hubs[key].color, pos, 50)
                 self.screen.blit(self.hub, (x * 70, y * 70))
-
-            if segment_index < len(route_points) - 1:
-                start_x, start_y = route_points[segment_index]
-                end_x, end_y = route_points[segment_index + 1]
-                drone_x = start_x + (end_x - start_x) * t
-                drone_y = start_y + (end_y - start_y) * t
-                self.screen.blit(self.drone, (int(drone_x), int(drone_y)))
-                t += speed
-                if t >= 1.0:
-                    t = 0.0
-                    segment_index += 1
-            else:
-                self.screen.blit(self.drone, route_points[-1])
+            finished = sum([1 for drone in self.drones
+                            if drone.segment_index == len(route_points) - 1])
+            if finished == len(self.drones):
+                for drone in self.drones:
+                    drone.segment_index = 0
+            for drone in self.drones:
+                if drone.segment_index < len(route_points) - 1:
+                    start_x, start_y = route_points[drone.segment_index]
+                    end_x, end_y = route_points[drone.segment_index + 1]
+                    drone_x = start_x + (end_x - start_x) * drone.t
+                    drone_y = start_y + (end_y - start_y) * drone.t
+                    self.screen.blit(self.drone, (int(drone_x), int(drone_y)))
+                    drone.t += drone.speed
+                    if drone.t >= 1.0:
+                        drone.t = 0.0
+                        drone.turns += 1
+                        drone.segment_index += 1
+                        print(drone.path[segment_index])
+                else:
+                    self.screen.blit(self.drone, route_points[-1])
 
             clock.tick(60)
             pygame.display.flip()

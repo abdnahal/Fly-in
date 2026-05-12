@@ -35,18 +35,17 @@ class PathFinder:
         # seen = set()
         count = 1
         while heap:
-            print(heap)
             f, _, current = heapq.heappop(heap)
             if current == end.name:
                 return self._path(current, end, came_from)
             if f > f_score[current]:
                 continue
             for neighbor in self.adjacency[current]:
-                g = g_score[current] + neighbor[1]
+                g = g_score[current] + self.hubs[current].cost
                 if g < g_score[neighbor[0]]:
                     came_from[neighbor[0]] = current
                     g_score[neighbor[0]] = g
-                    h = self._heuristic(self.hubs[neighbor[0]]['coord'],
+                    h = self._heuristic(self.hubs[neighbor[0]].coord,
                                         end.coord)
                     f_score[neighbor[0]] = g + h
                     heapq.heappush(heap, (f_score[neighbor[0]], count,

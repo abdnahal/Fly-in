@@ -1,0 +1,29 @@
+from parser import ConfigParser
+from display import display
+# from hub import Hub
+from Pathfinder import PathFinder
+from drone import Drone
+
+
+if __name__ == "__main__":
+    data = ConfigParser("file.txt", {})
+    adjacency = data.build_adjacency()
+    hubs = data.parse()["hubs"]
+    connections = data.parse()["connections"]
+    path_finder = PathFinder(adjacency, hubs)
+    start, end = list(data.data[
+        "hubs"].keys())[0], list(data.data["hubs"].keys())[1]
+    path = path_finder.astar(data.data["hubs"][start], data.data["hubs"][end])
+    print(data.data['nb_drones'])
+    drones = [Drone(i, path) for i in range(data.data['nb_drones'])]
+    display = display(hubs, connections, drones, path)
+    display.display_hubs()
+
+# {
+#     "hub": [("roof1", inf), ("corridorA", inf)],
+#     "roof1": [("hub", inf), ("roof2", inf)],
+#     "corridorA": [("hub", inf), ("tunnelB", 2)],
+#     "roof2": [("roof1", inf), ("goal", inf)],
+#     "goal": [("roof2", inf), ("tunnelB", inf)],
+#     "tunnelB": [("corridorA", 2), ("goal", inf)],
+# }

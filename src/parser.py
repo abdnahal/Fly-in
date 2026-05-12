@@ -1,7 +1,6 @@
 from typing import Dict
 from hub import Hub
 import sys
-import re
 
 
 class ConfigParser:
@@ -12,14 +11,11 @@ class ConfigParser:
 
     def _parse_metadata(self, text: str) -> Dict[str, object]:
         metadata: Dict[str, object] = {}
-        match = re.search(r"\[(.*?)\]", text)
-        if not match:
-            return metadata
-
-        for key, value in re.findall(
-            r"([A-Za-z_][A-Za-z0-9_]*)=([^\s\]]+)", match.group(1)
-        ):
+        parts = text.strip('[]').split()
+        for part in parts:
+            key, value = part.split('=')
             metadata[key] = int(value) if value.isdigit() else value
+        print(metadata)
         return metadata
 
     def parse(self) -> Dict[str, dict]:
@@ -43,13 +39,18 @@ class ConfigParser:
                                 raise ValueError(f"Invalid hub format: {line}")
 
                             hub_name = data[0]
-                            self.data["hubs"][hub_name] = {
-                                "coord": (int(data[1]), int(data[2]))
-                            }
-                            metadata = self._parse_metadata(parts[1])
+                            metadata = self._parse_metadata(data[3])
                             if metadata:
-                                self.data["hubs"][hub_name
-                                                  ]["metadata"] = metadata
+                                self.data['hubs'][
+                                    hub_name] = Hub(hub_name,
+                                                    {"coord": (int(data[1]),
+                                                               int(data[2])),
+                                                     "metadata": metadata})
+                            else:
+                                self.data['hubs'][
+                                    hub_name] = Hub(hub_name,
+                                                    {"coord": (int(data[1]),
+                                                               int(data[2]))})
 
                         else:
                             data = parts[1].strip().split(maxsplit=1)
@@ -59,8 +60,8 @@ class ConfigParser:
 
                             conn_name = data[0]
                             self.data["connections"][conn_name] = {}
-                            metadata = self._parse_metadata(parts[1])
-                            if metadata:
+                            if len(data) == 2:
+                                metadata = self._parse_metadata(data[1])
                                 self.data["connections"][conn_name][
                                     "metadata"
                                 ] = metadata
@@ -69,38 +70,20 @@ class ConfigParser:
             sys.exit(1)
         return self.data
 
-    def get_hubs_as_graph(self):
-        graph = []
-        for key in self.data["connections"].keys():
-            parts = key.split("-")
-            if "metadata" in self.data["connections"][key].keys():
-                graph.append(
-                    [
-                        Hub(parts[0], self.data["hubs"][parts[0]]),
-                        Hub(parts[1], self.data["hubs"][parts[1]]),
-                        self.data["connections"][
-                            key]["metadata"]["max_link_capacity"],
-                    ]
-                )
-            else:
-                graph.append(
-                    [
-                        Hub(parts[0], self.data["hubs"][parts[0]]),
-                        Hub(parts[1], self.data["hubs"][parts[1]]),
-                    ]
-                )
-        return graph
-
-    @staticmethod
-    def build_adjacency(connections: list[list]) -> dict[
+    def build_adjacency(self) -> dict[
                             str, list[tuple[str, int]]]:
 
         adjacency: dict[str, list[tuple[str, int]]] = {}
 
-        for connection in connections:
-            zone_a: str = connection[0]
-            zone_b: str = connection[1]
-            capacity: int = connection[2] if len(connection) == 3 else 1
+        for connection in self.data['connections'].keys():
+            parts = connection.split('-')
+            zone_a: str = parts[0]
+            zone_b: str = parts[1]
+            if 'metadata' in self.data['connections'][connection].keys():
+                tmp = self.data['connections'][connection]
+                capacity: int = tmp['metadata']['max_link_capacity']
+            else:
+                capacity = float("inf")
             if zone_a in adjacency.keys():
                 adjacency[zone_a].append((zone_b, capacity))
             else:
@@ -111,9 +94,3 @@ class ConfigParser:
                 adjacency[zone_b] = [(zone_a, capacity)]
 
         return adjacency
-
-    def get_objects(self):
-        objects = []
-        for key, value in self.data['hubs'].items():
-            objects.append(Hub(key, value))
-        return objects
