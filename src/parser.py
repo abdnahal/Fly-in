@@ -15,7 +15,6 @@ class ConfigParser:
         for part in parts:
             key, value = part.split('=')
             metadata[key] = int(value) if value.isdigit() else value
-        print(metadata)
         return metadata
 
     def parse(self) -> Dict[str, dict]:

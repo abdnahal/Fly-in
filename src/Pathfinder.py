@@ -35,6 +35,7 @@ class PathFinder:
         # seen = set()
         count = 1
         while heap:
+            print(heap)
             f, _, current = heapq.heappop(heap)
             if current == end.name:
                 return self._path(current, end, came_from)

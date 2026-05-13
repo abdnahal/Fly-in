@@ -14,10 +14,9 @@ if __name__ == "__main__":
     start, end = list(data.data[
         "hubs"].keys())[0], list(data.data["hubs"].keys())[1]
     path = path_finder.astar(data.data["hubs"][start], data.data["hubs"][end])
-    print(data.data['nb_drones'])
     drones = [Drone(i, path) for i in range(data.data['nb_drones'])]
     display = display(hubs, connections, drones, path)
-    display.display_hubs()
+    display._display()
 
 # {
 #     "hub": [("roof1", inf), ("corridorA", inf)],
