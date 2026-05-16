@@ -9,7 +9,7 @@ if __name__ == "__main__":
     data = ConfigParser("file.txt", {})
     adjacency = data.build_adjacency()
     hubs = data.parse()["hubs"]
-    connections = data.parse()["connections"]
+    connections = data.get_connections()
     path_finder = PathFinder(adjacency, hubs)
     start, end = list(data.data[
         "hubs"].keys())[0], list(data.data["hubs"].keys())[1]

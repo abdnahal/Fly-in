@@ -27,10 +27,6 @@ class display():
     def _build_route_points(self) -> List[tuple[float, float]]:
         return [self._hub_center(hub_name) for hub_name in self.path]
 
-    def get_drone(self):
-        for drone in self.drones:
-            yield drone
-
     def display_hubs(self):
         self.screen.fill('white')
         self.screen.blit(self.backgroud, (0, 0))
@@ -62,17 +58,27 @@ class display():
             return
         for drone in self.drones:
             if drone.segment_index < len(route_points) - 1:
-                start_x, start_y = route_points[drone.segment_index]
-                end_x, end_y = route_points[drone.segment_index + 1]
-                drone_x = start_x + (end_x - start_x) * drone.t
-                drone_y = start_y + (end_y - start_y) * drone.t
-                self.screen.blit(self.drone, (int(drone_x), int(drone_y)))
-                drone.t += drone.speed
-                if drone.t >= 1.0:
-                    drone.t = 0.0
-                    drone.turns += 1
-                    drone.segment_index += 1
-                    print(drone.path[drone.segment_index])
+                start = drone.path[drone.segment_index]
+                end = drone.path[drone.segment_index + 1]
+                connection = f'{start}-\
+{end}' if f'{start}-{end}' in self.connections.keys() else f'{end}-{start}'
+                conn = self.connections[connection]
+                if conn[0] > conn[1]:
+                    start_x, start_y = route_points[drone.segment_index]
+                    end_x, end_y = route_points[drone.segment_index + 1]
+                    drone_x = start_x + (end_x - start_x) * drone.t
+                    drone_y = start_y + (end_y - start_y) * drone.t
+                    self.screen.blit(self.drone, (int(drone_x), int(drone_y)))
+                    drone.t += drone.speed
+                    self.connections[connection] = (conn[0], conn[1] + 1)
+                    if drone.t >= 1.0:
+                        drone.t = 0.0
+                        drone.turns += 1
+                        self.connections[connection] = (conn[0], conn[1] - 1)
+                        drone.segment_index += 1
+                        print(drone.path[drone.segment_index])
+                else:
+                    continue
             else:
                 self.screen.blit(self.drone, route_points[-1])
 

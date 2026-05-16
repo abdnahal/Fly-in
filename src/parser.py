@@ -93,3 +93,14 @@ class ConfigParser:
                 adjacency[zone_b] = [(zone_a, capacity)]
 
         return adjacency
+
+    def get_connections(self) -> Dict[str, int]:
+        connections = {}
+        for key, value in self.data['connections'].items():
+            if 'metadata' in value:
+                cap = value['metadata']['max_link_capacity']
+            else:
+                cap = float("inf")
+            connections[key] = (cap, 0)
+        print(connections)
+        return connections
