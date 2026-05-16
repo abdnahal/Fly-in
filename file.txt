@@ -11,7 +11,7 @@ connection: hub-roof1
 connection: hub-corridorA
 connection: roof1-roof2
 connection: roof2-goal
-connection: corridorA-tunnelB [max_link_capacity=2]
+connection: corridorA-tunnelB [max_link_capacity=1]
 connection: tunnelB-goal
 
 
