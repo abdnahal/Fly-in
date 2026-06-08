@@ -11,12 +11,11 @@ if __name__ == "__main__":
     hubs = data.parse()["hubs"]
     connections = data.get_connections()
     path_finder = PathFinder(adjacency, hubs)
-    start, end = list(data.data[
-        "hubs"].keys())[0], list(data.data["hubs"].keys())[1]
-    path = path_finder.astar(data.data["hubs"][start], data.data["hubs"][end])
+    path = path_finder.get_paths(data.data['hubs']['start'],
+                                 data.data['hubs']['goal'])
     drones = [Drone(i, path) for i in range(data.data['nb_drones'])]
-    display = display(hubs, connections, drones, path)
-    display._display()
+    displayer = display(hubs, connections, drones, path)
+    displayer._display()
 
 # {
 #     "hub": [("roof1", inf), ("corridorA", inf)],

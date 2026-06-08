@@ -35,7 +35,6 @@ class PathFinder:
         # seen = set()
         count = 1
         while heap:
-            print(heap)
             f, _, current = heapq.heappop(heap)
             if current == end.name:
                 return self._path(current, end, came_from)
@@ -53,3 +52,18 @@ class PathFinder:
                                           neighbor[0]))
                     count += 1
         return None
+
+    def get_paths(self, start: Hub, end: Hub) -> List[List[str]]:
+        paths = []
+        counter = 0
+        while 1:
+            path = self.astar(start, end)
+            if path is None:
+                return paths
+            if path not in paths:
+                paths.append(path)
+                for hub in path:
+                    self.hubs[hub].cost += 2
+            if counter == len(self.hubs.keys()):
+                return paths
+            counter += 1

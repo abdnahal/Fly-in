@@ -9,11 +9,11 @@ class display():
         self.hubs = hubs
         self.connections = connections
         pygame.init()
-        self.screen = pygame.display.set_mode((1400, 800))
+        self.screen = pygame.display.set_mode((1800, 1200))
         self.backgroud = pygame.image.load(
-            "jimmy-butler-wtf.png"
+            "background-sky.jpg"
         ).convert_alpha()
-        self.backgroud = pygame.transform.scale(self.backgroud, (1400, 800))
+        self.backgroud = pygame.transform.scale(self.backgroud, (1800, 1200))
         self.hub = pygame.image.load("morocco.png").convert_alpha()
         self.drone = pygame.image.load("drone.png").convert_alpha()
         self.path = path
@@ -24,8 +24,8 @@ class display():
         x, y = self.hubs[hub_name].coord
         return (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
 
-    def _build_route_points(self) -> List[tuple[float, float]]:
-        return [self._hub_center(hub_name) for hub_name in self.path]
+    def _build_route_points(self, drone: Drone) -> List[tuple[float, float]]:
+        return [self._hub_center(hub_name) for hub_name in drone.path]
 
     def display_hubs(self):
         self.screen.fill('white')
@@ -35,58 +35,60 @@ class display():
             parts = key.split('-')
             x, y = self.hubs[parts[0]].coord
             i, j = self.hubs[parts[1]].coord
-            pos1 = (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
-            pos2 = (i * 70 + hub_w // 2, j * 70 + hub_h // 2)
+            pos1 = (x * 70 + hub_w // 2 + 300, y * 70 + hub_h // 2 + 200)
+            pos2 = (i * 70 + hub_w // 2 + 300, j * 70 + hub_h // 2 + 200)
             pygame.draw.line(self.screen, 'green', pos1, pos2, 3)
         for key in self.hubs.keys():
             x, y = self.hubs[key].coord
-            pos = (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
+            pos = (x * 70 + hub_w // 2 + 300, y * 70 + hub_h // 2 + 200)
             pygame.draw.circle(
                 self.screen,
-                self.hubs[key].color, pos, 50)
-            self.screen.blit(self.hub, (x * 70, y * 70))
-
+                self.hubs[key].color, pos, 30)
+            self.screen.blit(self.hub, (x * 70 + 300, y * 70 + 200))
 
     def display_drones(self):
-        route_points = self._build_route_points()
         finished = sum([1 for drone in self.drones
-                        if drone.segment_index == len(route_points) - 1])
+                        if drone.segment_index == len(drone.path) - 1])
         if finished == len(self.drones):
-            for drone in self.drones:
-                drone.segment_index = 0
-            return
+            pygame.quit()
         for drone in self.drones:
+            route_points = self._build_route_points(drone)
             if drone.segment_index < len(route_points) - 1:
                 start = drone.path[drone.segment_index]
                 end = drone.path[drone.segment_index + 1]
-                drone.current = f"{start}-{end}"
-                conn = self.connections[drone.current]
+                drone.current = [f"{start}-{end}"
+                                 if f"{start}-{end}" in self.connections.keys()
+                                 else f"{end}-{start}"]
+                conn = self.connections[drone.current[0]]
                 if conn[1] < conn[0] or drone.state == "running":
                     start_x, start_y = route_points[drone.segment_index]
                     end_x, end_y = route_points[drone.segment_index + 1]
                     drone_x = start_x + (end_x - start_x) * drone.t
                     drone_y = start_y + (end_y - start_y) * drone.t
-                    self.screen.blit(self.drone, (int(drone_x), int(drone_y)))
+                    self.screen.blit(self.drone, (int(drone_x) + 260,
+                                                  int(drone_y) + 170))
                     drone.state = "running"
                     if drone.t == 0.0:
-                        self.connections[drone.current] = (conn[0], conn[1] + 1)
+                        self.connections[drone.current[0]] = (conn[0],
+                                                              conn[1] + 1)
                     drone.t += drone.speed
                     if drone.t >= 1.0:
                         drone.state = "waiting"
                         drone.t = 0.0
                         drone.turns += 1
                         drone.segment_index += 1
-                        self.connections[drone.current] = (conn[0], conn[1] - 1)
-                        print(self.connections[drone.current])
+                        self.connections[drone.current[0]] = (conn[0],
+                                                              conn[1] - 1)
                         print(f"{drone.id}-{drone.path[drone.segment_index]}")
                 else:
                     x, y = route_points[drone.segment_index]
-                    self.screen.blit(self.drone, (x, y))
+                    self.screen.blit(self.drone, (x+260, y+170))
             else:
-                self.screen.blit(self.drone, route_points[-1])
+                x, y = route_points[-1]
+                self.screen.blit(self.drone, (x+260, y+170))
 
     def _display(self):
-        if not self.path or len(self.path) < 2:
+        if not self.path or len(self.path) < 1:
             return
 
         running = True

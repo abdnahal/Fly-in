@@ -34,7 +34,7 @@ class ConfigParser:
                             continue
                         if parts[0].lower() != "connection":
                             data = parts[1].strip().split(maxsplit=3)
-                            if len(data) < 3:
+                            if len(data) <= 3:
                                 raise ValueError(f"Invalid hub format: {line}")
 
                             hub_name = data[0]
@@ -102,5 +102,4 @@ class ConfigParser:
             else:
                 cap = float("inf")
             connections[key] = (cap, 0)
-        print(connections)
         return connections
