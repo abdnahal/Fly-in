@@ -10,7 +10,7 @@ if __name__ == "__main__":
     adjacency = data.build_adjacency()
     hubs = data.parse()["hubs"]
     connections = data.get_connections()
-    path_finder = PathFinder(adjacency, hubs)
+    path_finder = PathFinder(adjacency, hubs, data.data['nb_drones'])
     path = path_finder.get_paths(data.data['hubs']['start'],
                                  data.data['hubs']['goal'])
     drones = [Drone(i, path) for i in range(data.data['nb_drones'])]

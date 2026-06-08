@@ -1,14 +1,17 @@
 from hub import Hub
+from drone import Drone
 from typing import List, Dict, Tuple
 import heapq
 import math
 
 
 class PathFinder:
-    def __init__(self, adjacency: Dict[str, Tuple], hubs: Dict[str, Dict]):
+    def __init__(self, adjacency: Dict[str, Tuple], hubs: Dict[str, Dict],
+                 drones: List[Drone]):
         self.adjacency = adjacency
         self.hubs = hubs
-
+        self.drones = drones
+    
     def _heuristic(self, zone_a: Tuple[int],
                    zone_b: Tuple[int]) -> float:
         return math.sqrt((zone_a[0] - zone_b[0]) ** 2 +
@@ -55,15 +58,15 @@ class PathFinder:
 
     def get_paths(self, start: Hub, end: Hub) -> List[List[str]]:
         paths = []
-        counter = 0
         while 1:
             path = self.astar(start, end)
             if path is None:
                 return paths
             if path not in paths:
                 paths.append(path)
-                for hub in path:
+                for i, hub in enumerate(path):
+                    if i == 0 or i == len(path) - 1:
+                        continue
                     self.hubs[hub].cost += 2
-            if counter == len(self.hubs.keys()):
+            if len(paths) >= 5 or len(paths) == len(self.drones):
                 return paths
-            counter += 1
