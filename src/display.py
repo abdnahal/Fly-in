@@ -1,10 +1,11 @@
 import pygame
 from typing import Dict, List
 from drone import Drone
+from hub import Hub
 
 
 class display():
-    def __init__(self, hubs: Dict[str, Dict], connections: Dict[str, Dict],
+    def __init__(self, hubs: Dict[str, Hub], connections: Dict[str, tuple],
                  drones: List[Drone], path: List[str]):
         self.hubs = hubs
         self.connections = connections
@@ -27,7 +28,7 @@ class display():
     def _build_route_points(self, drone: Drone) -> List[tuple[float, float]]:
         return [self._hub_center(hub_name) for hub_name in drone.path]
 
-    def display_hubs(self):
+    def display_hubs(self) -> None:
         self.screen.fill('white')
         self.screen.blit(self.backgroud, (0, 0))
         hub_w, hub_h = self.hub.get_size()
@@ -46,19 +47,20 @@ class display():
                 self.hubs[key].color, pos, 30)
             self.screen.blit(self.hub, (x * 70 + 300, y * 70 + 200))
 
-    def display_drones(self):
+    def display_drones(self) -> int:
         finished = sum([1 for drone in self.drones
                         if drone.segment_index == len(drone.path) - 1])
         if finished == len(self.drones):
-            pygame.quit()
+            return 1
         for drone in self.drones:
             route_points = self._build_route_points(drone)
             if drone.segment_index < len(route_points) - 1:
                 start = drone.path[drone.segment_index]
                 end = drone.path[drone.segment_index + 1]
-                drone.current = [f"{start}-{end}"
-                                 if f"{start}-{end}" in self.connections.keys()
-                                 else f"{end}-{start}"]
+                current = [f"{start}-{end}"
+                           if f"{start}-{end}" in self.connections.keys()
+                           else f"{end}-{start}"]
+                drone.current = current[0]
                 conn = self.connections[drone.current[0]]
                 if conn[1] < conn[0] or drone.state == "running":
                     start_x, start_y = route_points[drone.segment_index]
@@ -86,8 +88,9 @@ class display():
             else:
                 x, y = route_points[-1]
                 self.screen.blit(self.drone, (x+260, y+170))
+        return 0
 
-    def _display(self):
+    def _display(self) -> None:
         if not self.path or len(self.path) < 1:
             return
 
@@ -98,7 +101,8 @@ class display():
                 if event.type == pygame.QUIT:
                     running = False
             self.display_hubs()
-            self.display_drones()
+            if self.display_drones() == 1:
+                break
             clock.tick(60)
             pygame.display.flip()
 

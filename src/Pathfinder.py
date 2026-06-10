@@ -11,7 +11,7 @@ class PathFinder:
         self.adjacency = adjacency
         self.hubs = hubs
         self.drones = drones
-    
+
     def _heuristic(self, zone_a: Tuple[int],
                    zone_b: Tuple[int]) -> float:
         return math.sqrt((zone_a[0] - zone_b[0]) ** 2 +
@@ -58,6 +58,7 @@ class PathFinder:
 
     def get_paths(self, start: Hub, end: Hub) -> List[List[str]]:
         paths = []
+        counter = 0
         while 1:
             path = self.astar(start, end)
             if path is None:
@@ -68,5 +69,11 @@ class PathFinder:
                     if i == 0 or i == len(path) - 1:
                         continue
                     self.hubs[hub].cost += 2
-            if len(paths) >= 5 or len(paths) == len(self.drones):
+                counter = 0
+            else:
+                counter += 1
+            if len(paths) >= 5 or len(paths) == self.drones:
                 return paths
+            if counter >= 100:
+                break
+        return paths
