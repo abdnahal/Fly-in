@@ -7,7 +7,9 @@ class Hub:
         self.name = name
         self.coord = hub['coord']
         self.metadata = hub.get('metadata', {})
-        if 'zone' in self.metadata.keys():
+        if name == 'start' or name == 'goal':
+            self.cost = 0
+        elif 'zone' in self.metadata.keys():
             if self.metadata['zone'] == 'blocked':
                 self.cost = float('inf')
             elif self.metadata['zone'] == 'primary':
@@ -19,4 +21,4 @@ class Hub:
         if self.metadata.get('color'):
             self.color = self.metadata['color']
         else:
-            self.color = None
+            self.color = 'White'

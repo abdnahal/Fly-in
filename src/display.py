@@ -43,8 +43,8 @@ class display():
             x, y = self.hubs[key].coord
             pos = (x * 70 + hub_w // 2 + 300, y * 70 + hub_h // 2 + 200)
             pygame.draw.circle(
-                self.screen,
-                self.hubs[key].color, pos, 30)
+                    self.screen,
+                    self.hubs[key].color, pos, 30)
             self.screen.blit(self.hub, (x * 70 + 300, y * 70 + 200))
 
     def display_drones(self) -> int:
@@ -61,7 +61,7 @@ class display():
                            if f"{start}-{end}" in self.connections.keys()
                            else f"{end}-{start}"]
                 drone.current = current[0]
-                conn = self.connections[drone.current[0]]
+                conn = self.connections[drone.current]
                 if conn[1] < conn[0] or drone.state == "running":
                     start_x, start_y = route_points[drone.segment_index]
                     end_x, end_y = route_points[drone.segment_index + 1]
@@ -71,17 +71,18 @@ class display():
                                                   int(drone_y) + 170))
                     drone.state = "running"
                     if drone.t == 0.0:
-                        self.connections[drone.current[0]] = (conn[0],
-                                                              conn[1] + 1)
+                        self.connections[drone.current] = (conn[0],
+                                                           conn[1] + 1)
                     drone.t += drone.speed
                     if drone.t >= 1.0:
                         drone.state = "waiting"
                         drone.t = 0.0
                         drone.turns += 1
                         drone.segment_index += 1
-                        self.connections[drone.current[0]] = (conn[0],
-                                                              conn[1] - 1)
-                        print(f"{drone.id}-{drone.path[drone.segment_index]}")
+                        self.connections[drone.current] = (conn[0],
+                                                           conn[1] - 1)
+                        # i = drone.segment_index + 1
+                        # print(f"{drone.id}-{drone.path[i]}")
                 else:
                     x, y = route_points[drone.segment_index]
                     self.screen.blit(self.drone, (x+260, y+170))
@@ -105,5 +106,9 @@ class display():
                 break
             clock.tick(60)
             pygame.display.flip()
-
+        turns = max([drone.path for drone in self.drones])
+        print(turns)
+        costs = [self.hubs[hub].cost for hub in turns]
+        print(costs)
+        print(f"Total turns: {sum(costs)}")
         pygame.quit()
