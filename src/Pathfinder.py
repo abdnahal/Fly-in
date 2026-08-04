@@ -59,10 +59,9 @@ class PathFinder:
 
     def get_paths(self, start: Hub, end: Hub) -> List[List[str]]:
         paths = []
-        counter = 0
         hubs = copy.deepcopy(self.hubs)
         # paths_req = self.drones / 5 if self.drones >= 5 else 1
-        while 1:
+        for _ in range(100):
             path = self.astar(start, end, hubs)
             if path is None:
                 return paths
@@ -72,11 +71,6 @@ class PathFinder:
                     if i == 0 or i == len(path) - 1:
                         continue
                     hubs[hub].cost += 2
-                counter = 0
-            else:
-                counter += 1
             if len(paths) >= 5 or len(paths) == self.drones:
                 return paths
-            if counter >= 100:
-                break
         return paths

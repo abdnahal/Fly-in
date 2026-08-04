@@ -15,15 +15,13 @@ class display():
             "background-sky.jpg"
         ).convert_alpha()
         self.backgroud = pygame.transform.scale(self.backgroud, (1800, 1200))
-        self.hub = pygame.image.load("morocco.png").convert_alpha()
         self.drone = pygame.image.load("drone.png").convert_alpha()
         self.path = path
         self.drones = drones
 
     def _hub_center(self, hub_name: str) -> tuple[float, float]:
-        hub_w, hub_h = self.hub.get_size()
         x, y = self.hubs[hub_name].coord
-        return (x * 70 + hub_w // 2, y * 70 + hub_h // 2)
+        return (x * 70, y * 70)
 
     def _build_route_points(self, drone: Drone) -> List[tuple[float, float]]:
         return [self._hub_center(hub_name) for hub_name in drone.path]
@@ -31,21 +29,19 @@ class display():
     def display_hubs(self) -> None:
         self.screen.fill('white')
         self.screen.blit(self.backgroud, (0, 0))
-        hub_w, hub_h = self.hub.get_size()
         for key in self.connections:
             parts = key.split('-')
             x, y = self.hubs[parts[0]].coord
             i, j = self.hubs[parts[1]].coord
-            pos1 = (x * 70 + hub_w // 2 + 300, y * 70 + hub_h // 2 + 200)
-            pos2 = (i * 70 + hub_w // 2 + 300, j * 70 + hub_h // 2 + 200)
+            pos1 = (x * 70 + 300, y * 70 + 200)
+            pos2 = (i * 70 + 300, j * 70 + 200)
             pygame.draw.line(self.screen, 'green', pos1, pos2, 3)
         for key in self.hubs.keys():
             x, y = self.hubs[key].coord
-            pos = (x * 70 + hub_w // 2 + 300, y * 70 + hub_h // 2 + 200)
+            pos = (x * 70 + 300, y * 70 + 200)
             pygame.draw.circle(
                     self.screen,
                     self.hubs[key].color, pos, 30)
-            self.screen.blit(self.hub, (x * 70 + 300, y * 70 + 200))
 
     def display_drones(self) -> int:
         finished = sum([1 for drone in self.drones
@@ -106,9 +102,4 @@ class display():
                 break
             clock.tick(60)
             pygame.display.flip()
-        turns = max([drone.path for drone in self.drones])
-        print(turns)
-        costs = [self.hubs[hub].cost for hub in turns]
-        print(costs)
-        print(f"Total turns: {sum(costs)}")
         pygame.quit()
