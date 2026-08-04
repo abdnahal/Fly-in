@@ -2,7 +2,7 @@ install:
 	pip install pygame flake8 mypy
 
 run:
-	python3 src/main.py
+	python3 -m src file.txt
 
 debug:
 	python3 -m pdb src/main.py 

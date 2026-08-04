@@ -4,6 +4,7 @@ from .display import display
 # from hub import Hub
 from .Pathfinder import PathFinder
 from .drone import Drone
+from .simulator import Simulator
 
 
 if __name__ == "__main__":
@@ -17,19 +18,19 @@ if __name__ == "__main__":
     connections = data.get_connections()
     path_finder = PathFinder(adjacency, hubs, data.data['nb_drones'])
     path = path_finder.get_paths(data.data['hubs']['start'],
-                                 data.data['hubs']['goal'])
+                                 data.data['hubs']['impossible_goal'])
     if len(path) == 0:
         print("No path found!")
         sys.exit(1)
     drones = [Drone(i, path) for i in range(data.data['nb_drones'])]
     displayer = display(hubs, connections, drones, path)
-    print(hubs)
     paths = path_finder.get_paths(hubs['start'],
-                                  hubs['goal'])
-    
+                                  hubs['impossible_goal'])
+
     drones = [Drone(i, paths) for i in range(data.data['nb_drones'])]
     displayer = display(hubs, connections, drones, paths)
     displayer._display()
+    print(Simulator(hubs, connections, drones).calculate_turns())
 
 # {
 #     "hub": [("roof1", inf), ("corridorA", inf)],

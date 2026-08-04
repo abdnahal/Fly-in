@@ -1,7 +1,7 @@
 import pygame
 from typing import Dict, List
-from drone import Drone
-from hub import Hub
+from .drone import Drone
+from .hub import Hub
 
 
 class display():
@@ -39,9 +39,14 @@ class display():
         for key in self.hubs.keys():
             x, y = self.hubs[key].coord
             pos = (x * 70 + 300, y * 70 + 200)
-            pygame.draw.circle(
+            try:
+                pygame.draw.circle(
                     self.screen,
                     self.hubs[key].color, pos, 30)
+            except ValueError:
+                pygame.draw.circle(
+                    self.screen,
+                    'white', pos, 30)
 
     def display_drones(self) -> int:
         finished = sum([1 for drone in self.drones
