@@ -29,9 +29,13 @@ class Allocator:
         turns: Simulated turn count of the chosen assignment.
     """
 
-    def __init__(self, hubs: Dict[str, Hub],
-                 connections: Dict[str, Tuple[float, int]],
-                 paths: List[List[str]], nb_drones: int) -> None:
+    def __init__(
+        self,
+        hubs: Dict[str, Hub],
+        connections: Dict[str, Tuple[float, int]],
+        paths: List[List[str]],
+        nb_drones: int,
+    ) -> None:
         """Build an allocator.
 
         Args:

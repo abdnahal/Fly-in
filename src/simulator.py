@@ -30,9 +30,12 @@ class Simulator:
             has run (``0`` beforehand).
     """
 
-    def __init__(self, hubs: Dict[str, Hub],
-                 connections: Dict[str, Tuple[float, int]],
-                 drones: List[Drone]) -> None:
+    def __init__(
+        self,
+        hubs: Dict[str, Hub],
+        connections: Dict[str, Tuple[float, int]],
+        drones: List[Drone],
+    ) -> None:
         """Build a simulator.
 
         Args:
@@ -97,8 +100,10 @@ class Simulator:
 
     def _is_done(self, drone: Drone) -> bool:
         """True once ``drone`` has landed in its goal zone."""
-        return (not self._inflight[drone.id]
-                and self._idx[drone.id] == len(drone.path) - 1)
+        return (
+            not self._inflight[drone.id]
+            and self._idx[drone.id] == len(drone.path) - 1
+        )
 
     def _init_state(self) -> None:
         """Reset all drones to the start of their path."""
@@ -149,9 +154,12 @@ class Simulator:
         #    ones closest to the goal first so leaders free space for
         #    followers within the same turn (chain-shift). Drones that just
         #    landed in step A have already used their move for this turn.
-        movers = [d for d in self.drones
-                  if d.id not in landed
-                  and not self._inflight[d.id] and not self._is_done(d)]
+        movers = [
+            d
+            for d in self.drones
+            if d.id not in landed and not self._inflight[d.id]
+            and not self._is_done(d)
+        ]
         movers.sort(key=lambda d: self._idx[d.id], reverse=True)
 
         for drone in movers:
@@ -163,8 +171,8 @@ class Simulator:
 
             if conn_used[conn] >= self._conn_cap(conn):
                 continue
-            avail = (self._zone_cap(nxt) - self._occ[nxt]
-                     - entering[nxt] + leaving[nxt])
+            avail = self._zone_cap(nxt) - self._occ[nxt] - entering[nxt]
+            avail += leaving[nxt]
             if avail <= 0:
                 continue
 
@@ -202,8 +210,8 @@ class Simulator:
             Total number of simulation turns to deliver every drone.
         """
         self._init_state()
-        while (not all(self._is_done(d) for d in self.drones)
-               and self.turns < max_turns):
+        while not all(self._is_done(d)
+                      for d in self.drones) and self.turns < max_turns:
             moves = self._step()
             if not moves:
                 break  # no drone could move -> deadlock, stop counting

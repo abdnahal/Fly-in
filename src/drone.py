@@ -3,8 +3,10 @@ from random import choice
 
 
 class Drone:
-    def __init__(self, drone_id: int, paths: List[str],
-                 assigned: Optional[List[str]] = None):
+    def __init__(
+        self, drone_id: int, paths: List[str],
+        assigned: Optional[List[str]] = None
+    ):
         self.id = f"D{drone_id}"
         # Prefer an explicitly assigned path (deterministic routing from the
         # Allocator); fall back to a random pick only when none is given.

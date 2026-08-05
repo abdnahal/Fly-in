@@ -7,16 +7,18 @@ import copy
 
 
 class PathFinder:
-    def __init__(self, adjacency: Dict[str, Tuple], hubs: Dict[str, Dict],
-                 drones: List[Drone]):
+    def __init__(
+        self, adjacency: Dict[str, Tuple],
+        hubs: Dict[str, Dict],
+        drones: List[Drone]
+    ):
         self.adjacency = adjacency
         self.hubs = hubs
         self.drones = drones
 
-    def _heuristic(self, zone_a: Tuple[int],
-                   zone_b: Tuple[int]) -> float:
-        return math.sqrt((zone_a[0] - zone_b[0]) ** 2 +
-                         (zone_a[1] - zone_b[1]) ** 2)
+    def _heuristic(self, zone_a: Tuple[int], zone_b: Tuple[int]) -> float:
+        return math.sqrt((zone_a[0] - zone_b[0]) ** 2 + (
+            zone_a[1] - zone_b[1]) ** 2)
 
     def _path(self, end: Hub, came_from: Dict[str, str]):
         node = end.name
@@ -28,8 +30,8 @@ class PathFinder:
 
     def astar(self, start: Hub, end: Hub, zones: Dict[str, Hub]) -> List[Hub]:
         heap = []
-        heapq.heappush(heap, (self._heuristic(start.coord, end.coord),
-                              0, start.name))
+        heapq.heappush(heap, (self._heuristic(start.coord, end.coord), 0,
+                              start.name))
         g_score = {hub: float("inf") for hub in zones.keys()}
         f_score = {hub: float("inf") for hub in zones.keys()}
         g_score[start.name] = 0
@@ -49,8 +51,7 @@ class PathFinder:
                 if g < g_score[neighbor[0]]:
                     came_from[neighbor[0]] = current
                     g_score[neighbor[0]] = g
-                    h = self._heuristic(zones[neighbor[0]].coord,
-                                        end.coord)
+                    h = self._heuristic(zones[neighbor[0]].coord, end.coord)
                     f_score[neighbor[0]] = g + h
                     heapq.heappush(heap, (f_score[neighbor[0]], count,
                                           neighbor[0]))

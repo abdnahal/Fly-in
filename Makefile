@@ -11,5 +11,6 @@ clean:
 	rm -rf src/__pycache__ __pycache__
 
 lint:
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	flake8 src
+	mypy src --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 	flake8 .

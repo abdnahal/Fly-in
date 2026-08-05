@@ -11,9 +11,9 @@ class ConfigParser:
 
     def _parse_metadata(self, text: str) -> Dict[str, object]:
         metadata: Dict[str, object] = {}
-        parts = text.strip('[]').split()
+        parts = text.strip("[]").split()
         for part in parts:
-            key, value = part.split('=')
+            key, value = part.split("=")
             metadata[key] = int(value) if value.isdigit() else value
         return metadata
 
@@ -30,9 +30,11 @@ class ConfigParser:
                         if len(parts) != 2:
                             raise ValueError(f"Invalid format: {line}")
                         if i == 0:
-                            if parts[0] != 'nb_drones' or len(parts) != 2:
-                                raise ValueError("First line must be: \
-nb_drones: <positive_integer>")
+                            if parts[0] != "nb_drones" or len(parts) != 2:
+                                raise ValueError(
+                                    "First line must be: \
+nb_drones: <positive_integer>"
+                                )
                             self.data[parts[0]] = int(parts[1])
                             continue
                         if parts[0].lower() != "connection":
@@ -43,22 +45,26 @@ nb_drones: <positive_integer>")
                             hub_name = data[0]
                             metadata = self._parse_metadata(data[3])
                             if metadata:
-                                self.data['hubs'][
-                                    hub_name] = Hub(hub_name,
-                                                    {"coord": (int(data[1]),
-                                                               int(data[2])),
-                                                     "metadata": metadata})
+                                self.data["hubs"][hub_name] = Hub(
+                                    hub_name,
+                                    {
+                                        "coord": (int(data[1]), int(data[2])),
+                                        "metadata": metadata,
+                                    },
+                                )
                             else:
-                                self.data['hubs'][
-                                    hub_name] = Hub(hub_name,
-                                                    {"coord": (int(data[1]),
-                                                               int(data[2]))})
+                                self.data["hubs"][hub_name] = Hub(
+                                    hub_name, {"coord": (int(data[1]),
+                                                         int(data[2]))}
+                                )
 
                         else:
                             data = parts[1].strip().split(maxsplit=1)
                             if not data:
-                                raise ValueError(f"Invalid connection\
-                                                 format: {line}")
+                                raise ValueError(
+                                    f"Invalid connection\
+                                                 format: {line}"
+                                )
 
                             conn_name = data[0]
                             self.data["connections"][conn_name] = {}
@@ -74,42 +80,42 @@ nb_drones: <positive_integer>")
         return self.data
 
     def validate(self) -> None:
-        for hub in self.data['hubs'].keys():
-            if '-' in hub:
+        for hub in self.data["hubs"].keys():
+            if "-" in hub:
                 print(f"Invalid hub name: {hub}")
                 sys.exit(1)
         err = "Invalid connection: "
-        for conn in self.data['connections'].keys():
-            tmp = conn.split('-')
-            if tmp[0] not in self.data['hubs'].keys():
+        for conn in self.data["connections"].keys():
+            tmp = conn.split("-")
+            if tmp[0] not in self.data["hubs"].keys():
                 print(f"{err}{conn}")
                 sys.exit(1)
-            elif tmp[1] not in self.data['hubs'].keys():
+            elif tmp[1] not in self.data["hubs"].keys():
                 print(f"{err}{conn}")
                 sys.exit(1)
-            if f"{tmp[1]}-{tmp[0]}" in self.data['connections'].keys():
+            if f"{tmp[1]}-{tmp[0]}" in self.data["connections"].keys():
                 print("The same connection cannot appear more than once")
                 sys.exit(1)
         zones = ["normal", "blocked", "restricted", "priority"]
-        for value in self.data['hubs'].values():
-            if 'zone' in value.metadata.keys():
-                if value.metadata['zone'] not in zones:
-                    print("Zone types must be one of: normal, blocked, \
-restricted, priority")
+        for value in self.data["hubs"].values():
+            if "zone" in value.metadata.keys():
+                if value.metadata["zone"] not in zones:
+                    print(
+                        "Zone types must be one of: normal, blocked, \
+restricted, priority"
+                    )
                     sys.exit(1)
 
-    def build_adjacency(self) -> Dict[
-                            str, Tuple[str, int]]:
-
+    def build_adjacency(self) -> Dict[str, Tuple[str, int]]:
         adjacency: dict[str, list[tuple[str, int]]] = {}
 
-        for connection in self.data['connections'].keys():
-            parts = connection.split('-')
+        for connection in self.data["connections"].keys():
+            parts = connection.split("-")
             zone_a: str = parts[0]
             zone_b: str = parts[1]
-            if 'metadata' in self.data['connections'][connection].keys():
-                tmp = self.data['connections'][connection]
-                capacity: int = tmp['metadata']['max_link_capacity']
+            if "metadata" in self.data["connections"][connection].keys():
+                tmp = self.data["connections"][connection]
+                capacity: int = tmp["metadata"]["max_link_capacity"]
             else:
                 capacity = float("inf")
             if zone_a in adjacency.keys():
@@ -125,9 +131,9 @@ restricted, priority")
 
     def get_connections(self) -> Dict[str, int]:
         connections = {}
-        for key, value in self.data['connections'].items():
-            if 'metadata' in value:
-                cap = value['metadata']['max_link_capacity']
+        for key, value in self.data["connections"].items():
+            if "metadata" in value:
+                cap = value["metadata"]["max_link_capacity"]
             else:
                 cap = float("inf")
             connections[key] = (cap, 0)
