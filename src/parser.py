@@ -22,42 +22,51 @@ class ConfigParser:
             with open(self.config, "r") as f:
                 self.data["hubs"] = {}
                 self.data["connections"] = {}
-                for i, line in enumerate(f):
+                counter = 0
+                for line in f:
                     if not line.strip() or line.startswith("#"):
                         continue
                     else:
                         parts = line.split(":", maxsplit=1)
                         if len(parts) != 2:
                             raise ValueError(f"Invalid format: {line}")
-                        if i == 0:
+                        if counter == 0:
                             if parts[0] != "nb_drones" or len(parts) != 2:
                                 raise ValueError(
                                     "First line must be: \
 nb_drones: <positive_integer>"
                                 )
                             self.data[parts[0]] = int(parts[1])
+                            counter += 1
                             continue
                         if parts[0].lower() != "connection":
                             data = parts[1].strip().split(maxsplit=3)
-                            if len(data) <= 3:
+                            if len(data) < 3:
                                 raise ValueError(f"Invalid hub format: {line}")
 
                             hub_name = data[0]
-                            metadata = self._parse_metadata(data[3])
-                            if metadata:
+                            if len(data) == 4:
+                                metadata = self._parse_metadata(data[3])
                                 self.data["hubs"][hub_name] = Hub(
                                     hub_name,
                                     {
                                         "coord": (int(data[1]), int(data[2])),
                                         "metadata": metadata,
                                     },
+                                    True if parts[0].lower() == "start_hub"
+                                    else False,
+                                    True if parts[0].lower() == "end_hub"
+                                    else False,
                                 )
                             else:
                                 self.data["hubs"][hub_name] = Hub(
-                                    hub_name, {"coord": (int(data[1]),
-                                                         int(data[2]))}
+                                    hub_name,
+                                    {"coord": (int(data[1]), int(data[2]))},
+                                    True if parts[0].lower() == "start_hub"
+                                    else False,
+                                    True if parts[0].lower() == "end_hub"
+                                    else False,
                                 )
-
                         else:
                             data = parts[1].strip().split(maxsplit=1)
                             if not data:
@@ -73,6 +82,7 @@ nb_drones: <positive_integer>"
                                 self.data["connections"][conn_name][
                                     "metadata"
                                 ] = metadata
+                        counter += 1
         except ValueError as e:
             print(e)
             sys.exit(1)
@@ -80,31 +90,45 @@ nb_drones: <positive_integer>"
         return self.data
 
     def validate(self) -> None:
-        for hub in self.data["hubs"].keys():
-            if "-" in hub:
-                print(f"Invalid hub name: {hub}")
-                sys.exit(1)
-        err = "Invalid connection: "
-        for conn in self.data["connections"].keys():
-            tmp = conn.split("-")
-            if tmp[0] not in self.data["hubs"].keys():
-                print(f"{err}{conn}")
-                sys.exit(1)
-            elif tmp[1] not in self.data["hubs"].keys():
-                print(f"{err}{conn}")
-                sys.exit(1)
-            if f"{tmp[1]}-{tmp[0]}" in self.data["connections"].keys():
-                print("The same connection cannot appear more than once")
-                sys.exit(1)
-        zones = ["normal", "blocked", "restricted", "priority"]
-        for value in self.data["hubs"].values():
-            if "zone" in value.metadata.keys():
-                if value.metadata["zone"] not in zones:
-                    print(
-                        "Zone types must be one of: normal, blocked, \
-restricted, priority"
-                    )
-                    sys.exit(1)
+        try:
+            for hub in self.data['hubs'].values():
+                if hub.metadata:
+                    if 'max_drones' in hub.metadata.keys():
+                        if hub.metadata['max_drones'] <= 0:
+                            e = "max_drones should be a positive integer"
+                            raise ValueError(e)
+            start = sum([1 for hub in self.data['hubs'].values() if hub.start])
+            if start != 1:
+                raise ValueError("One start_hub needed!")
+            end = sum([1 for hub in self.data['hubs'].values() if hub.end])
+            if end != 1:
+                raise ValueError("One end_hub needed!")
+            if self.data["nb_drones"] <= 0:
+                raise ValueError("Number of drones can't be negative!")
+            for hub in self.data["hubs"].keys():
+                if "-" in hub:
+                    raise ValueError(f"Invalid hub name: {hub}")
+            err = "Invalid connection: "
+            for conn in self.data["connections"].keys():
+                tmp = conn.split("-")
+                if tmp[0] not in self.data["hubs"].keys():
+                    raise ValueError(f"{err}{conn}")
+                elif tmp[1] not in self.data["hubs"].keys():
+                    raise ValueError(f"{err}{conn}")
+                if f"{tmp[1]}-{tmp[0]}" in self.data["connections"].keys():
+                    e = "The same connection cannot appear more than once"
+                    raise ValueError(e)
+            zones = ["normal", "blocked", "restricted", "priority"]
+            for value in self.data["hubs"].values():
+                if "zone" in value.metadata.keys():
+                    if value.metadata["zone"] not in zones:
+                        raise ValueError(
+                            "Zone types must be one of: normal, blocked, \
+    restricted, priority"
+                        )
+        except ValueError as e:
+            print(e)
+            sys.exit(1)
 
     def build_adjacency(self) -> Dict[str, Tuple[str, int]]:
         adjacency: dict[str, list[tuple[str, int]]] = {}

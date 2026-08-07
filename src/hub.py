@@ -2,11 +2,14 @@ from typing import Dict, Any
 
 
 class Hub:
-    def __init__(self, name: str, hub: Dict[str, Any]):
+    def __init__(self, name: str, hub: Dict[str, Any],
+                 start: bool, end: bool):
         self.hub = hub
         self.name = name
         self.coord = hub["coord"]
         self.metadata = hub.get("metadata", {})
+        self.start = start
+        self.end = end
         if name == "start" or name == "goal":
             self.cost = 0
         elif "zone" in self.metadata.keys():

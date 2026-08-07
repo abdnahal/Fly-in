@@ -20,8 +20,9 @@ if __name__ == "__main__":
     hubs = data.data["hubs"]
     connections = data.get_connections()
     path_finder = PathFinder(adjacency, hubs, data.data["nb_drones"])
-    paths = path_finder.get_paths(data.data["hubs"][
-        "start"], data.data["hubs"]["goal"])
+    start = [hub for hub in data.data['hubs'].values() if hub.start]
+    end = [hub for hub in data.data['hubs'].values() if hub.end]
+    paths = path_finder.get_paths(start[0], end[0])
     if len(paths) == 0:
         print("No path found!")
         sys.exit(1)
@@ -34,9 +35,14 @@ if __name__ == "__main__":
         for i in range(data.data["nb_drones"])
     ]
 
-    displayer = display(hubs, connections, drones, paths)
+    sim = Simulator(hubs, connections, drones)
+    turns = sim.calculate_turns()          # builds sim.schedule FIRST
+
+    displayer = display(hubs, connections, drones, paths, sim.schedule)
     displayer._display()
-    turns = Simulator(hubs, connections, drones).calculate_turns()
+
+    for line in sim.schedule:
+        print(line)
     print(f"Simulation turns: {turns}")
 
 # {
