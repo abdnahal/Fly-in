@@ -11,8 +11,14 @@ class ConfigParser:
 
     def _parse_metadata(self, text: str) -> Dict[str, object]:
         metadata: Dict[str, object] = {}
+        op = sum([1 for c in text if c == '['])
+        clo = sum([1 for c in text if c == ']'])
+        if op != clo:
+            raise ValueError(f"Invalid metadata: {text}")
         parts = text.strip("[]").split()
         for part in parts:
+            if '[' in part or ']' in part:
+                raise ValueError(f"Invalid metadata: {text}")
             key, value = part.split("=")
             metadata[key] = int(value) if value.isdigit() else value
         return metadata
@@ -23,13 +29,12 @@ class ConfigParser:
                 self.data["hubs"] = {}
                 self.data["connections"] = {}
                 counter = 0
+                allowed = ['hub', 'connection', 'start_hub', 'end_hub']
                 for line in f:
                     if not line.strip() or line.startswith("#"):
                         continue
                     else:
                         parts = line.split(":", maxsplit=1)
-                        if len(parts) != 2:
-                            raise ValueError(f"Invalid format: {line}")
                         if counter == 0:
                             if parts[0] != "nb_drones" or len(parts) != 2:
                                 raise ValueError(
@@ -39,6 +44,8 @@ nb_drones: <positive_integer>"
                             self.data[parts[0]] = int(parts[1])
                             counter += 1
                             continue
+                        if len(parts) != 2 or parts[0].lower() not in allowed:
+                            raise ValueError(f"Invalid format: {line}")
                         if parts[0].lower() != "connection":
                             data = parts[1].strip().split(maxsplit=3)
                             if len(data) < 3:
@@ -94,6 +101,8 @@ nb_drones: <positive_integer>"
             for hub in self.data['hubs'].values():
                 if hub.metadata:
                     if 'max_drones' in hub.metadata.keys():
+                        if not isinstance(hub.metadata['max_drones'], int):
+                            raise ValueError("max_drones should be an integer!")
                         if hub.metadata['max_drones'] <= 0:
                             e = "max_drones should be a positive integer"
                             raise ValueError(e)
@@ -111,6 +120,8 @@ nb_drones: <positive_integer>"
             err = "Invalid connection: "
             for conn in self.data["connections"].keys():
                 tmp = conn.split("-")
+                if len(tmp) != 2:
+                    raise ValueError(f"{err}{conn}")
                 if tmp[0] not in self.data["hubs"].keys():
                     raise ValueError(f"{err}{conn}")
                 elif tmp[1] not in self.data["hubs"].keys():
