@@ -2,6 +2,7 @@ import pygame
 from typing import Dict, List
 from .drone import Drone
 from .hub import Hub
+from .simulator import Simulator
 
 
 class display:
@@ -11,7 +12,7 @@ class display:
         connections: Dict[str, tuple],
         drones: List[Drone],
         path: List[str],
-        schedule: List[str],
+        sim: Simulator
     ):
         self.hubs = hubs
         self.connections = connections
@@ -23,7 +24,8 @@ class display:
         self.drone = pygame.image.load("drone.png").convert_alpha()
         self.path = path
         self.drones = drones
-        self.schedule = schedule
+        self.schedule = sim.schedule
+        self.sim = sim
 
     def _hub_center(self, hub_name: str) -> tuple[float, float]:
         x, y = self.hubs[hub_name].coord
@@ -120,4 +122,6 @@ class display:
             self._draw_frame(timeline, len(timeline) - 1, 0.0)
             clock.tick(60)
             pygame.display.flip()
+            if all(self.sim._is_done(d) for d in self.drones):
+                break
         pygame.quit()

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     sim = Simulator(hubs, connections, drones)
     turns = sim.calculate_turns()          # builds sim.schedule FIRST
 
-    displayer = display(hubs, connections, drones, paths, sim.schedule)
+    displayer = display(hubs, connections, drones, paths, sim)
     displayer._display()
 
     for line in sim.schedule:
