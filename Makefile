@@ -5,7 +5,7 @@ run:
 	python3 -m src file.txt
 
 debug:
-	python3 -m pdb src/main.py 
+	python3 -m pdb -m src
 
 clean:
 	rm -rf src/__pycache__ __pycache__

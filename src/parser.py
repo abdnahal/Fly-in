@@ -34,6 +34,7 @@ class ConfigParser:
                     if not line.strip() or line.startswith("#"):
                         continue
                     else:
+                        line = line.split('#')[0]
                         parts = line.split(":", maxsplit=1)
                         if counter == 0:
                             if parts[0] != "nb_drones" or len(parts) != 2:
@@ -44,14 +45,27 @@ nb_drones: <positive_integer>"
                             self.data[parts[0]] = int(parts[1])
                             counter += 1
                             continue
-                        if len(parts) != 2 or parts[0].lower() not in allowed:
+                        if counter == 1:
+                            if parts[0].strip().lower() != 'start_hub':
+                                e = "First hub must be Start_hub !"
+                                raise ValueError(e)
+                        if len(parts) != 2 or parts[0].strip(
+                        ).lower() not in allowed:
+                            if len(allowed) == 1:
+                                raise ValueError("end_hub should \
+be the last hub!")
                             raise ValueError(f"Invalid format: {line}")
+                        if parts[0].strip().lower() == 'end_hub':
+                            allowed = ['connection']
                         if parts[0].lower() != "connection":
                             data = parts[1].strip().split(maxsplit=3)
                             if len(data) < 3:
                                 raise ValueError(f"Invalid hub format: {line}")
 
                             hub_name = data[0]
+                            if hub_name in self.data['hubs'].keys():
+                                raise ValueError(f"Duplicated hub name \
+detected: {hub_name}")
                             if len(data) == 4:
                                 metadata = self._parse_metadata(data[3])
                                 self.data["hubs"][hub_name] = Hub(
@@ -78,11 +92,14 @@ nb_drones: <positive_integer>"
                             data = parts[1].strip().split(maxsplit=1)
                             if not data:
                                 raise ValueError(
-                                    f"Invalid connection\
-                                                 format: {line}"
+                                    f"Invalid connection \
+format: {line}"
                                 )
 
                             conn_name = data[0]
+                            if conn_name in self.data['connections'].keys():
+                                raise ValueError(f"Duplicated connection name \
+detected: {conn_name}")
                             self.data["connections"][conn_name] = {}
                             if len(data) == 2:
                                 metadata = self._parse_metadata(data[1])
@@ -102,7 +119,8 @@ nb_drones: <positive_integer>"
                 if hub.metadata:
                     if 'max_drones' in hub.metadata.keys():
                         if not isinstance(hub.metadata['max_drones'], int):
-                            raise ValueError("max_drones should be an integer!")
+                            raise ValueError("max_drones \
+should be an integer!")
                         if hub.metadata['max_drones'] <= 0:
                             e = "max_drones should be a positive integer"
                             raise ValueError(e)
@@ -118,14 +136,21 @@ nb_drones: <positive_integer>"
                 if "-" in hub:
                     raise ValueError(f"Invalid hub name: {hub}")
             err = "Invalid connection: "
-            for conn in self.data["connections"].keys():
-                tmp = conn.split("-")
+            for key, value in self.data["connections"].items():
+                if 'metadata' in value.keys():
+                    if 'max_link_capacity' not in value['metadata']:
+                        raise ValueError(f"Unknown connection metadata on \
+{key}")
+                    if int(value['metadata']['max_link_capacity']) <= 0:
+                        e = "max_link_capacity should be a positive integer!"
+                        raise ValueError(e)
+                tmp = key.split("-")
                 if len(tmp) != 2:
-                    raise ValueError(f"{err}{conn}")
+                    raise ValueError(f"{err}{key}")
                 if tmp[0] not in self.data["hubs"].keys():
-                    raise ValueError(f"{err}{conn}")
+                    raise ValueError(f"{err}{key}")
                 elif tmp[1] not in self.data["hubs"].keys():
-                    raise ValueError(f"{err}{conn}")
+                    raise ValueError(f"{err}{key}")
                 if f"{tmp[1]}-{tmp[0]}" in self.data["connections"].keys():
                     e = "The same connection cannot appear more than once"
                     raise ValueError(e)
@@ -135,7 +160,7 @@ nb_drones: <positive_integer>"
                     if value.metadata["zone"] not in zones:
                         raise ValueError(
                             "Zone types must be one of: normal, blocked, \
-    restricted, priority"
+restricted, priority"
                         )
         except ValueError as e:
             print(e)
