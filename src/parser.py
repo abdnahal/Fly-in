@@ -175,9 +175,9 @@ restricted, priority"
             zone_b: str = parts[1]
             if "metadata" in self.data["connections"][connection].keys():
                 tmp = self.data["connections"][connection]
-                capacity: int = tmp["metadata"]["max_link_capacity"]
+                capacity = tmp["metadata"]["max_link_capacity"]
             else:
-                capacity = float("inf")
+                capacity = 1
             if zone_a in adjacency.keys():
                 adjacency[zone_a].append((zone_b, capacity))
             else:
@@ -195,6 +195,6 @@ restricted, priority"
             if "metadata" in value:
                 cap = value["metadata"]["max_link_capacity"]
             else:
-                cap = float("inf")
+                cap = 1
             connections[key] = (cap, 0)
         return connections
