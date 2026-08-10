@@ -17,10 +17,10 @@ class display:
         self.hubs = hubs
         self.connections = connections
         pygame.init()
-        self.screen = pygame.display.set_mode((1800, 1200))
+        self.screen = pygame.display.set_mode((1500, 700))
         self.backgroud = pygame.image.load(
             "background-sky.jpg").convert_alpha()
-        self.backgroud = pygame.transform.scale(self.backgroud, (1800, 1200))
+        self.backgroud = pygame.transform.scale(self.backgroud, (1500, 700))
         self.drone = pygame.image.load("drone.png").convert_alpha()
         self.path = path
         self.drones = drones
@@ -108,20 +108,12 @@ class display:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            running = False
                 if not running:
                     break
                 self._draw_frame(timeline, turn, f / frames_per_turn)
                 clock.tick(60)
                 pygame.display.flip()
             turn += 1
-        # hold the final frame until the window is closed
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-            self._draw_frame(timeline, len(timeline) - 1, 0.0)
-            clock.tick(60)
-            pygame.display.flip()
-            if all(self.sim._is_done(d) for d in self.drones):
-                break
-        pygame.quit()
