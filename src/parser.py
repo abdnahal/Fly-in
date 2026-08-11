@@ -58,6 +58,9 @@ be the last hub!")
                         if parts[0].strip().lower() == 'end_hub':
                             allowed = ['connection']
                         if parts[0].lower() != "connection":
+                            if self.data['connections']:
+                                raise ValueError("Hubs should be defined \
+before connections!")
                             data = parts[1].strip().split(maxsplit=3)
                             if len(data) < 3:
                                 raise ValueError(f"Invalid hub format: {line}")
@@ -68,10 +71,15 @@ be the last hub!")
 detected: {hub_name}")
                             if len(data) == 4:
                                 metadata = self._parse_metadata(data[3])
+                                coord = (int(data[1]), int(data[2]))
+                                for hub in self.data['hubs'].values():
+                                    if hub.coord == coord:
+                                        raise ValueError(f"Overlapping hubs \
+Detected: {hub.name} {hub_name}")
                                 self.data["hubs"][hub_name] = Hub(
                                     hub_name,
                                     {
-                                        "coord": (int(data[1]), int(data[2])),
+                                        "coord": coord,
                                         "metadata": metadata,
                                     },
                                     True if parts[0].lower() == "start_hub"
@@ -107,7 +115,8 @@ detected: {conn_name}")
                                     "metadata"
                                 ] = metadata
                         counter += 1
-        except ValueError as e:
+        except (ValueError, FileNotFoundError, PermissionError,
+                IsADirectoryError) as e:
             print(e)
             sys.exit(1)
         self.validate()
@@ -116,7 +125,11 @@ detected: {conn_name}")
     def validate(self) -> None:
         try:
             for hub in self.data['hubs'].values():
+                data = ['zone', 'color', 'max_drones']
                 if hub.metadata:
+                    for key in hub.metadata.keys():
+                        if key not in data:
+                            raise ValueError(f"Unkown metadata: {key}")
                     if 'max_drones' in hub.metadata.keys():
                         if not isinstance(hub.metadata['max_drones'], int):
                             raise ValueError("max_drones \

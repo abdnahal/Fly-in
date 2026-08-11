@@ -16,7 +16,7 @@ class Hub:
             if self.metadata["zone"] == "blocked":
                 self.cost = float("inf")
             elif self.metadata["zone"] == "priority":
-                self.cost = 0.9
+                self.cost = 0.8
             else:
                 self.cost = 2 if self.metadata["zone"] == "restricted" else 1
         else:
