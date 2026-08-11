@@ -1,6 +1,5 @@
 from .hub import Hub
-from .drone import Drone
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import heapq
 import math
 import copy
@@ -8,35 +7,41 @@ import copy
 
 class PathFinder:
     def __init__(
-        self, adjacency: Dict[str, Tuple],
-        hubs: Dict[str, Dict],
-        drones: List[Drone]
+        self, adjacency: Dict[str, List[Tuple[str, int]]],
+        hubs: Dict[str, Hub],
+        drones: int
     ):
         self.adjacency = adjacency
         self.hubs = hubs
         self.drones = drones
 
-    def _heuristic(self, zone_a: Tuple[int], zone_b: Tuple[int]) -> float:
+    def _heuristic(
+        self, zone_a: Tuple[int, int], zone_b: Tuple[int, int]
+    ) -> float:
         return math.sqrt((zone_a[0] - zone_b[0]) ** 2 + (
             zone_a[1] - zone_b[1]) ** 2)
 
-    def _path(self, end: Hub, came_from: Dict[str, str]):
-        node = end.name
-        path = []
+    def _path(
+        self, end: Hub, came_from: Dict[str, Optional[str]]
+    ) -> List[str]:
+        node: Optional[str] = end.name
+        path: List[str] = []
         while node:
             path.append(node)
             node = came_from[node]
         return path[::-1]
 
-    def astar(self, start: Hub, end: Hub, zones: Dict[str, Hub]) -> List[Hub]:
-        heap = []
+    def astar(
+        self, start: Hub, end: Hub, zones: Dict[str, Hub]
+    ) -> Optional[List[str]]:
+        heap: List[Tuple[float, int, str]] = []
         heapq.heappush(heap, (self._heuristic(start.coord, end.coord), 0,
                               start.name))
         g_score = {hub: float("inf") for hub in zones.keys()}
         f_score = {hub: float("inf") for hub in zones.keys()}
         g_score[start.name] = 0
         f_score[start.name] = g_score[start.name] + heap[0][0]
-        came_from = {}
+        came_from: Dict[str, Optional[str]] = {}
         came_from[start.name] = None
         # seen = set()
         count = 1
@@ -59,7 +64,7 @@ class PathFinder:
         return None
 
     def get_paths(self, start: Hub, end: Hub) -> List[List[str]]:
-        paths = []
+        paths: List[List[str]] = []
         hubs = copy.deepcopy(self.hubs)
         # paths_req = self.drones / 5 if self.drones >= 5 else 1
         for _ in range(100):

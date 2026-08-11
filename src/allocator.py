@@ -55,7 +55,7 @@ class Allocator:
         """Turn cost of traversing ``path`` (restricted zones cost 2)."""
         cost = 0
         for zone in path[1:]:
-            hub = self.hubs.get(zone)
+            hub = self.hubs[zone]
             restricted = hub.metadata.get("zone") == "restricted"
             cost += 2 if restricted else 1
         return cost

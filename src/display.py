@@ -11,17 +11,47 @@ class display:
         hubs: Dict[str, Hub],
         connections: Dict[str, tuple],
         drones: List[Drone],
-        path: List[str],
+        path: List[List[str]],
         sim: Simulator
     ):
         self.hubs = hubs
         self.connections = connections
         pygame.init()
-        self.screen = pygame.display.set_mode((1500, 700))
+        width, height = 1500, 700
+        self.screen = pygame.display.set_mode((width, height))
         self.backgroud = pygame.image.load(
             "background-sky.jpg").convert_alpha()
-        self.backgroud = pygame.transform.scale(self.backgroud, (1500, 700))
-        self.drone = pygame.image.load("drone.png").convert_alpha()
+        self.backgroud = pygame.transform.scale(
+            self.backgroud, (width, height))
+
+        # Fit the map to the window: derive a uniform scale and a centring
+        # offset from the hub coordinate bounds, so a map of any size (a
+        # handful of zones, or the 50+ of the challenger map) stays fully on
+        # screen instead of running off the fixed 1500x700 canvas. The scale
+        # is capped at 70 so small maps keep their familiar spacing.
+        margin = 90
+        xs = [h.coord[0] for h in hubs.values()] or [0]
+        ys = [h.coord[1] for h in hubs.values()] or [0]
+        self._min_x, max_x = min(xs), max(xs)
+        self._min_y, max_y = min(ys), max(ys)
+        span_x = (max_x - self._min_x) or 1
+        span_y = (max_y - self._min_y) or 1
+        avail_w = width - 2 * margin
+        avail_h = height - 2 * margin
+        self._scale = min(avail_w / span_x, avail_h / span_y, 70)
+        self._off_x = (width - span_x * self._scale) / 2
+        self._off_y = (height - span_y * self._scale) / 2
+
+        # Size the hub circles and drone sprite to the scale so dense maps
+        # stay legible; both are clamped to their original sizes for small
+        # maps (radius 30 and an 80px sprite at the un-shrunk scale of 70).
+        self._radius = max(6, min(30, int(self._scale * 30 / 70)))
+        drone_size = max(16, min(80, int(self._scale * 80 / 70)))
+        self._drone_half = drone_size / 2
+        drone_img = pygame.image.load("drone.png").convert_alpha()
+        self.drone = pygame.transform.scale(
+            drone_img, (drone_size, drone_size))
+
         self.path = path
         self.drones = drones
         self.schedule = sim.schedule
@@ -29,7 +59,8 @@ class display:
 
     def _hub_center(self, hub_name: str) -> tuple[float, float]:
         x, y = self.hubs[hub_name].coord
-        return (x * 70, y * 70)
+        return (self._off_x + (x - self._min_x) * self._scale,
+                self._off_y + (y - self._min_y) * self._scale)
 
     def _build_route_points(self, drone: Drone) -> List[tuple[float, float]]:
         return [self._hub_center(hub_name) for hub_name in drone.path]
@@ -39,18 +70,16 @@ class display:
         self.screen.blit(self.backgroud, (0, 0))
         for key in self.connections:
             parts = key.split("-")
-            x, y = self.hubs[parts[0]].coord
-            i, j = self.hubs[parts[1]].coord
-            pos1 = (x * 70 + 300, y * 70 + 200)
-            pos2 = (i * 70 + 300, j * 70 + 200)
+            pos1 = self._hub_center(parts[0])
+            pos2 = self._hub_center(parts[1])
             pygame.draw.line(self.screen, "green", pos1, pos2, 3)
         for key in self.hubs.keys():
-            x, y = self.hubs[key].coord
-            pos = (x * 70 + 300, y * 70 + 200)
+            pos = self._hub_center(key)
             try:
-                pygame.draw.circle(self.screen, self.hubs[key].color, pos, 30)
+                pygame.draw.circle(
+                    self.screen, self.hubs[key].color, pos, self._radius)
             except ValueError:
-                pygame.draw.circle(self.screen, "white", pos, 30)
+                pygame.draw.circle(self.screen, "white", pos, self._radius)
 
     def _loc_xy(self, loc: tuple) -> tuple[float, float]:
         """Screen center for a location: a zone, or an edge's midpoint."""
@@ -93,7 +122,9 @@ class display:
             bx, by = self._loc_xy(timeline[nxt][d.id])
             x = ax + (bx - ax) * alpha
             y = ay + (by - ay) * alpha
-            self.screen.blit(self.drone, (int(x) + 260, int(y) + 170))
+            self.screen.blit(
+                self.drone,
+                (int(x - self._drone_half), int(y - self._drone_half)))
 
     def _display(self) -> None:
         if not self.schedule:

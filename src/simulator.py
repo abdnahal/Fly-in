@@ -53,21 +53,16 @@ class Simulator:
         self.schedule: List[str] = []
         self.turns: int = 0
 
-        # Zones with unbounded capacity: every path's start and end.
         self._unbounded: set[str] = set()
         for drone in drones:
             if drone.path:
                 self._unbounded.add(drone.path[0])
                 self._unbounded.add(drone.path[-1])
 
-        # Per-drone mutable state, keyed by drone id (kept separate from the
-        # display's own attributes so the two never interfere).
         self._idx: Dict[str, int] = {}
         self._inflight: Dict[str, bool] = {}
         self._flight: Dict[str, Optional[str]] = {}
         self._occ: Dict[str, int] = defaultdict(int)
-
-    # -- helpers ---------------------------------------------------------
 
     def _conn_key(self, a: str, b: str) -> str:
         """Return the stored connection key for the ``a``/``b`` link."""

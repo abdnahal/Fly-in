@@ -11,7 +11,7 @@ class Hub:
         self.start = start
         self.end = end
         if name == "start" or name == "goal":
-            self.cost = 0
+            self.cost: float = 0
         elif "zone" in self.metadata.keys():
             if self.metadata["zone"] == "blocked":
                 self.cost = float("inf")

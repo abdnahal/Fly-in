@@ -4,7 +4,7 @@ from random import choice
 
 class Drone:
     def __init__(
-        self, drone_id: int, paths: List[str],
+        self, drone_id: int, paths: List[List[str]],
         assigned: Optional[List[str]] = None
     ):
         self.id = f"D{drone_id}"

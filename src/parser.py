@@ -1,10 +1,10 @@
-from typing import Dict, Tuple
+from typing import Any, Dict, List, Tuple
 from .hub import Hub
 import sys
 
 
 class ConfigParser:
-    def __init__(self, path: str, data: Dict[str, dict]):
+    def __init__(self, path: str, data: Dict[str, Any]):
         self.config = path
         self.data = data if data else {}
         self.parse()
@@ -166,7 +166,7 @@ restricted, priority"
             print(e)
             sys.exit(1)
 
-    def build_adjacency(self) -> Dict[str, Tuple[str, int]]:
+    def build_adjacency(self) -> Dict[str, List[Tuple[str, int]]]:
         adjacency: dict[str, list[tuple[str, int]]] = {}
 
         for connection in self.data["connections"].keys():
@@ -189,8 +189,8 @@ restricted, priority"
 
         return adjacency
 
-    def get_connections(self) -> Dict[str, int]:
-        connections = {}
+    def get_connections(self) -> Dict[str, Tuple[float, int]]:
+        connections: Dict[str, Tuple[float, int]] = {}
         for key, value in self.data["connections"].items():
             if "metadata" in value:
                 cap = value["metadata"]["max_link_capacity"]
