@@ -52,6 +52,11 @@ class display:
         self.drone = pygame.transform.scale(
             drone_img, (drone_size, drone_size))
 
+        # Label font scales with the map so hub/connection names stay
+        # legible on dense maps and don't overpower small ones.
+        label_size = max(12, min(22, int(self._scale * 22 / 70)))
+        self._font = pygame.font.Font(None, label_size)
+
         self.path = path
         self.drones = drones
         self.schedule = sim.schedule
@@ -65,14 +70,27 @@ class display:
     def _build_route_points(self, drone: Drone) -> List[tuple[float, float]]:
         return [self._hub_center(hub_name) for hub_name in drone.path]
 
+    def _draw_label(self, text: str, cx: float, cy: float) -> None:
+        """Draw centred text with a light halo so names stay readable."""
+        main = self._font.render(text, True, (20, 20, 20))
+        halo = self._font.render(text, True, (255, 255, 255))
+        rect = main.get_rect(center=(int(cx), int(cy)))
+        for ox, oy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+            self.screen.blit(halo, (rect.x + ox, rect.y + oy))
+        self.screen.blit(main, rect)
+
     def display_hubs(self) -> None:
         self.screen.fill("white")
         self.screen.blit(self.backgroud, (0, 0))
+        fh = self._font.get_height()
         for key in self.connections:
             parts = key.split("-")
             pos1 = self._hub_center(parts[0])
             pos2 = self._hub_center(parts[1])
             pygame.draw.line(self.screen, "green", pos1, pos2, 3)
+            mx = (pos1[0] + pos2[0]) / 2
+            my = (pos1[1] + pos2[1]) / 2
+            self._draw_label(key, mx, my - fh / 2)
         for key in self.hubs.keys():
             pos = self._hub_center(key)
             try:
@@ -80,6 +98,7 @@ class display:
                     self.screen, self.hubs[key].color, pos, self._radius)
             except ValueError:
                 pygame.draw.circle(self.screen, "white", pos, self._radius)
+            self._draw_label(key, pos[0], pos[1] + self._radius + fh / 2 + 2)
 
     def _loc_xy(self, loc: tuple) -> tuple[float, float]:
         """Screen center for a location: a zone, or an edge's midpoint."""

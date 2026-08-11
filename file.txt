@@ -8,7 +8,7 @@ nb_drones: 5
 # === LAYER 0: The Nightmare Begins ===
 start_hub: start 0 0 [color=green max_drones=25] 
 hub: prior 2 5 [zone=restricted]
-hub: norm 2 5 [zone=restricted]
+hub: norm -2 5 [zone=restricted]
 End_hub: impossible_goal 23 0 [color=rainbow max_drones=25]
 
 Connection: start-prior
