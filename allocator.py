@@ -69,7 +69,9 @@ class Allocator:
         """Return the turn count the simulator needs for ``assignment``."""
         drones = [Drone(i, [], assigned=assignment[i])
                   for i in range(self.nb_drones)]
-        return Simulator(self.hubs, self.connections, drones).calculate_turns()
+        turns: int = Simulator(self.hubs, self.connections,
+                               drones).calculate_turns()
+        return turns
 
     def allocate(self) -> List[List[str]]:
         """Compute and store the best per-drone path assignment.

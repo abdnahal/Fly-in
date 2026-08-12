@@ -5,12 +5,12 @@ run:
 	python3 -m src file.txt
 
 debug:
-	python3 -m pdb -m src file.txt
+	python3 -m pdb main.py file.txt
 
 clean:
-	rm -rf src/__pycache__ __pycache__
+	rm -rf  __pycache__
 	rm -rf .mypy*
 
 lint:
-	flake8 src
-	mypy src --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	flake8 .
+	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
