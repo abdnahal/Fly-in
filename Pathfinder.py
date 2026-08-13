@@ -1,4 +1,4 @@
-from .hub import Hub
+from hub import Hub
 from typing import List, Dict, Tuple, Optional
 import heapq
 import math
@@ -46,6 +46,7 @@ class PathFinder:
         # seen = set()
         count = 1
         while heap:
+            print(heap)
             f, _, current = heapq.heappop(heap)
             if current == end.name:
                 return self._path(end, came_from)
@@ -56,7 +57,11 @@ class PathFinder:
                 if g < g_score[neighbor[0]]:
                     came_from[neighbor[0]] = current
                     g_score[neighbor[0]] = g
-                    h = self._heuristic(zones[neighbor[0]].coord, end.coord)
+                    if zones[neighbor[0]].cost == 0.8:
+                        h = 0
+                    else:
+                        h = self._heuristic(zones[neighbor[0]].coord,
+                                            end.coord)
                     f_score[neighbor[0]] = g + h
                     heapq.heappush(heap, (f_score[neighbor[0]], count,
                                           neighbor[0]))
@@ -66,7 +71,6 @@ class PathFinder:
     def get_paths(self, start: Hub, end: Hub) -> List[List[str]]:
         paths: List[List[str]] = []
         hubs = copy.deepcopy(self.hubs)
-        # paths_req = self.drones / 5 if self.drones >= 5 else 1
         for _ in range(100):
             path = self.astar(start, end, hubs)
             if path is None:

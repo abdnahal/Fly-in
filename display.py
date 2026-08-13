@@ -1,8 +1,8 @@
 import pygame
 from typing import Dict, List
-from .drone import Drone
-from .hub import Hub
-from .simulator import Simulator
+from drone import Drone
+from hub import Hub
+from simulator import Simulator
 
 
 class display:

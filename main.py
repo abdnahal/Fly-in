@@ -1,13 +1,13 @@
 try:
     import sys
-    from .parser import ConfigParser
-    from .display import display
+    from parser import ConfigParser
+    from display import display
 
     # from hub import Hub
-    from .Pathfinder import PathFinder
-    from .drone import Drone
-    from .allocator import Allocator
-    from .simulator import Simulator
+    from Pathfinder import PathFinder
+    from drone import Drone
+    from allocator import Allocator
+    from simulator import Simulator
 except (KeyboardInterrupt, ImportError):
     print("\n\nStop interrupting my imports :(\n\n")
 

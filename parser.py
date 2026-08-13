@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Tuple
-from .hub import Hub
+from hub import Hub
 import sys
 
 

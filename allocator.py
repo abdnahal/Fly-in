@@ -1,8 +1,8 @@
 from typing import Dict, List, Tuple
 
-from .hub import Hub
-from .drone import Drone
-from .simulator import Simulator
+from hub import Hub
+from drone import Drone
+from simulator import Simulator
 
 
 class Allocator:

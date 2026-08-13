@@ -1,8 +1,8 @@
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from .hub import Hub
-from .drone import Drone
+from hub import Hub
+from drone import Drone
 
 
 class Simulator:
