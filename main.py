@@ -1,3 +1,10 @@
+"""Main entry point for the drone network simulator.
+
+This module initializes the configuration, computes optimal paths, allocates
+drones to paths, simulates the fleet movement, and initiates the visual
+display.
+"""
+
 try:
     import sys
     from parser import ConfigParser
@@ -50,11 +57,3 @@ if __name__ == "__main__":
         print(f"Simulation turns: {turns}")
     except KeyboardInterrupt:
         print("\nStop interrupting me :(\n")
-# {
-#     "hub": [("roof1", inf), ("corridorA", inf)],
-#     "roof1": [("hub", inf), ("roof2", inf)],
-#     "corridorA": [("hub", inf), ("tunnelB", 2)],
-#     "roof2": [("roof1", inf), ("goal", inf)],
-#     "goal": [("roof2", inf), ("tunnelB", inf)],
-#     "tunnelB": [("corridorA", 2), ("goal", inf)],
-# }

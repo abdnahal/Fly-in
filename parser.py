@@ -4,12 +4,36 @@ import sys
 
 
 class ConfigParser:
+    """Parses and validates the drone network configuration file.
+
+    This class reads a text file defining the number of drones, hub locations,
+    zone types, and connections, providing methods to access this data in
+    structured formats suitable for routing and simulation.
+    """
+
     def __init__(self, path: str, data: Dict[str, Any]):
+        """Initialize the ConfigParser.
+
+        Args:
+            path: File system path to the configuration file.
+            data: An existing dictionary to populate with parsed data.
+        """
         self.config = path
         self.data = data if data else {}
         self.parse()
 
     def _parse_metadata(self, text: str) -> Dict[str, object]:
+        """Parse metadata strings formatted as [key=value key=value].
+
+        Args:
+            text: Raw metadata string from the config file.
+
+        Returns:
+            A dictionary of parsed metadata keys and values.
+
+        Raises:
+            ValueError: If brackets are unbalanced or format is invalid.
+        """
         metadata: Dict[str, object] = {}
         op = sum([1 for c in text if c == '['])
         clo = sum([1 for c in text if c == ']'])
@@ -24,6 +48,18 @@ class ConfigParser:
         return metadata
 
     def parse(self) -> Dict[str, dict]:
+        """Read and parse the configuration file.
+
+        This method processes the file line-by-line, extracting drone counts,
+        hub definitions (including start and end hubs), and connection details.
+
+        Returns:
+            The populated data dictionary.
+
+        Raises:
+            ValueError: If the file format violates expected rules (e.g.,
+                missing hubs, incorrect order, or invalid names).
+        """
         try:
             with open(self.config, "r") as f:
                 self.data["hubs"] = {}
@@ -123,6 +159,19 @@ detected: {conn_name}")
         return self.data
 
     def validate(self) -> None:
+        """Perform extensive validation on the parsed configuration data.
+
+        Checks for:
+        - Unknown metadata keys.
+        - Validity of 'max_drones' and 'max_link_capacity'.
+        - Existence of exactly one start hub and one end hub.
+        - Positive drone count.
+        - Valid hub names and non-duplicate connections.
+        - Correct zone types.
+
+        Raises:
+            ValueError: If any validation rule is violated.
+        """
         try:
             for hub in self.data['hubs'].values():
                 data = ['zone', 'color', 'max_drones']
@@ -180,6 +229,12 @@ restricted, priority"
             sys.exit(1)
 
     def build_adjacency(self) -> Dict[str, List[Tuple[str, int]]]:
+        """Convert parsed connections into an adjacency list for pathfinding.
+
+        Returns:
+            A dictionary mapping hub names to lists of (neighbor_name,
+            capacity) tuples.
+        """
         adjacency: dict[str, list[tuple[str, int]]] = {}
 
         for connection in self.data["connections"].keys():
@@ -203,6 +258,12 @@ restricted, priority"
         return adjacency
 
     def get_connections(self) -> Dict[str, Tuple[float, int]]:
+        """Retrieve connection details in a format suitable for the simulator.
+
+        Returns:
+            A dictionary mapping connection keys ("hubA-hubB") to
+            (capacity, current_usage) tuples.
+        """
         connections: Dict[str, Tuple[float, int]] = {}
         for key, value in self.data["connections"].items():
             if "metadata" in value:

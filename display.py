@@ -6,6 +6,12 @@ from simulator import Simulator
 
 
 class display:
+    """Manages the Pygame visualization display for the drone network.
+
+    Renders hubs, connections, routes, and simulates the real-time flight of
+    drones based on the computed scheduler timeline.
+    """
+
     def __init__(
         self,
         hubs: Dict[str, Hub],
@@ -14,6 +20,16 @@ class display:
         path: List[List[str]],
         sim: Simulator
     ):
+        """Initialize the Pygame visualization display.
+
+        Args:
+            hubs: Mapping from zone names to Hub instances.
+            connections: Mapping of connection strings to tuples
+                representing capacities or usage.
+            drones: List of Drone instances to be displayed.
+            path: List of paths discovered by the pathfinder.
+            sim: The Simulator instance holding flight schedule state.
+        """
         self.hubs = hubs
         self.connections = connections
         pygame.init()
@@ -23,12 +39,6 @@ class display:
             "background-sky.jpg").convert_alpha()
         self.backgroud = pygame.transform.scale(
             self.backgroud, (width, height))
-
-        # Fit the map to the window: derive a uniform scale and a centring
-        # offset from the hub coordinate bounds, so a map of any size (a
-        # handful of zones, or the 50+ of the challenger map) stays fully on
-        # screen instead of running off the fixed 1500x700 canvas. The scale
-        # is capped at 70 so small maps keep their familiar spacing.
         margin = 90
         xs = [h.coord[0] for h in hubs.values()] or [0]
         ys = [h.coord[1] for h in hubs.values()] or [0]
@@ -42,9 +52,6 @@ class display:
         self._off_x = (width - span_x * self._scale) / 2
         self._off_y = (height - span_y * self._scale) / 2
 
-        # Size the hub circles and drone sprite to the scale so dense maps
-        # stay legible; both are clamped to their original sizes for small
-        # maps (radius 30 and an 80px sprite at the un-shrunk scale of 70).
         self._radius = max(6, min(30, int(self._scale * 30 / 70)))
         drone_size = max(16, min(80, int(self._scale * 80 / 70)))
         self._drone_half = drone_size / 2
@@ -52,8 +59,6 @@ class display:
         self.drone = pygame.transform.scale(
             drone_img, (drone_size, drone_size))
 
-        # Label font scales with the map so hub/connection names stay
-        # legible on dense maps and don't overpower small ones.
         label_size = max(12, min(22, int(self._scale * 22 / 70)))
         self._font = pygame.font.Font(None, label_size)
 
@@ -63,11 +68,28 @@ class display:
         self.sim = sim
 
     def _hub_center(self, hub_name: str) -> tuple[float, float]:
+        """Calculate the scaled screen coordinates for a given hub.
+
+        Args:
+            hub_name: The name of the hub.
+
+        Returns:
+            A tuple of (x, y) screen coordinates.
+        """
         x, y = self.hubs[hub_name].coord
         return (self._off_x + (x - self._min_x) * self._scale,
                 self._off_y + (y - self._min_y) * self._scale)
 
     def _build_route_points(self, drone: Drone) -> List[tuple[float, float]]:
+        """Compute the list of screen coordinate points representing
+        the route of a drone.
+
+        Args:
+            drone: The Drone instance whose route is being scaled.
+
+        Returns:
+            A list of (x, y) coordinate tuples on the screen.
+        """
         return [self._hub_center(hub_name) for hub_name in drone.path]
 
     def _draw_label(self, text: str, cx: float, cy: float) -> None:
@@ -80,6 +102,12 @@ class display:
         self.screen.blit(main, rect)
 
     def display_hubs(self) -> None:
+        """Render the background, connections, and hubs on the screen.
+
+        This method clears the screen, draws the background image, then
+        iterates through all connections and hubs to draw them according
+        to their coordinates and colors.
+        """
         self.screen.fill("white")
         self.screen.blit(self.backgroud, (0, 0))
         fh = self._font.get_height()
@@ -88,9 +116,6 @@ class display:
             pos1 = self._hub_center(parts[0])
             pos2 = self._hub_center(parts[1])
             pygame.draw.line(self.screen, "green", pos1, pos2, 3)
-            mx = (pos1[0] + pos2[0]) / 2
-            my = (pos1[1] + pos2[1]) / 2
-            self._draw_label(key, mx, my - fh / 2)
         for key in self.hubs.keys():
             pos = self._hub_center(key)
             try:
@@ -98,7 +123,6 @@ class display:
                     self.screen, self.hubs[key].color, pos, self._radius)
             except ValueError:
                 pygame.draw.circle(self.screen, "white", pos, self._radius)
-            self._draw_label(key, pos[0], pos[1] + self._radius + fh / 2 + 2)
 
     def _loc_xy(self, loc: tuple) -> tuple[float, float]:
         """Screen center for a location: a zone, or an edge's midpoint."""
@@ -146,6 +170,12 @@ class display:
                 (int(x - self._drone_half), int(y - self._drone_half)))
 
     def _display(self) -> None:
+        """Start and manage the main visualization loop.
+
+        This method builds the animation timeline, then enters a loop to
+        render each frame, handling user input (like quitting or pausing)
+        and maintaining the frame rate using Pygame's clock.
+        """
         if not self.schedule:
             return
         timeline = self._build_timeline()

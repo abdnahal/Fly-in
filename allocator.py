@@ -52,7 +52,17 @@ class Allocator:
         self.turns: int = 0
 
     def _path_cost(self, path: List[str]) -> int:
-        """Turn cost of traversing ``path`` (restricted zones cost 2)."""
+        """Calculate the total cost of traversing a given path.
+
+        The cost is calculated based on zone types, where restricted zones
+        incur a cost of 2, and others incur a cost of 1.
+
+        Args:
+            path: A list of zone names representing the path.
+
+        Returns:
+            The total cost of the path.
+        """
         cost = 0
         for zone in path[1:]:
             hub = self.hubs[zone]
@@ -60,13 +70,28 @@ class Allocator:
             cost += 2 if restricted else 1
         return cost
 
-    def _interleave(self, chosen: List[List[str]]) -> List[List[str]]:
-        """Spread drones round-robin over ``chosen`` paths by drone id."""
+    def _spread_drones(self, chosen: List[List[str]]) -> List[List[str]]:
+        """Spread drones round-robin over ``chosen`` paths by drone id.
+
+        Args:
+            chosen: A list of paths (each a list of zone names) to choose from.
+
+        Returns:
+            A list where each index corresponds to a drone, containing its
+            assigned path.
+        """
         count = len(chosen)
         return [chosen[i % count] for i in range(self.nb_drones)]
 
-    def _simulate(self, assignment: List[List[str]]) -> int:
-        """Return the turn count the simulator needs for ``assignment``."""
+    def _get_simulation_turns(self, assignment: List[List[str]]) -> int:
+        """Simulate the fleet movement for a given path assignment.
+
+        Args:
+            assignment: A list of paths assigned to each drone.
+
+        Returns:
+            The total number of turns required for the fleet to reach the goal.
+        """
         drones = [Drone(i, [], assigned=assignment[i])
                   for i in range(self.nb_drones)]
         turns: int = Simulator(self.hubs, self.connections,
@@ -90,8 +115,8 @@ class Allocator:
         best_turns = -1
         best_assignment: List[List[str]] = []
         for k in range(1, len(ranked) + 1):
-            assignment = self._interleave(ranked[:k])
-            turns = self._simulate(assignment)
+            assignment = self._spread_drones(ranked[:k])
+            turns = self._get_simulation_turns(assignment)
             if best_turns == -1 or turns < best_turns:
                 best_turns = turns
                 best_assignment = assignment

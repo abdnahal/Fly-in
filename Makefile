@@ -2,10 +2,10 @@ install:
 	pip install pygame flake8 mypy
 
 run:
-	python3 -m src file.txt
+	python3 main.py ../maps/easy/01_linear_path.txt
 
 debug:
-	python3 -m pdb main.py file.txt
+	python3 -m pdb main.py file.txt ../maps/easy/01_linear_path.txt
 
 clean:
 	rm -rf  __pycache__

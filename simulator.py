@@ -65,7 +65,18 @@ class Simulator:
         self._occ: Dict[str, int] = defaultdict(int)
 
     def _conn_key(self, a: str, b: str) -> str:
-        """Return the stored connection key for the ``a``/``b`` link."""
+        """Return the stored connection key for the ``a``/``b`` link.
+
+        This handles bidirectional connections by checking which orientation
+        (a-b or b-a) exists in the connections dictionary.
+
+        Args:
+            a: Name of the first hub.
+            b: Name of the second hub.
+
+        Returns:
+            The normalized connection key string.
+        """
         if f"{a}-{b}" in self.connections:
             return f"{a}-{b}"
         return f"{b}-{a}"
@@ -76,6 +87,15 @@ class Simulator:
         return entry[0] if entry is not None else float("inf")
 
     def _zone_cap(self, name: str) -> float:
+        """Maximum drones a zone may hold simultaneously.
+
+        Args:
+            name: The zone name.
+
+        Returns:
+            The maximum capacity, or ``inf`` if the zone is unbounded.
+        """
+
         """Maximum drones a zone may hold simultaneously."""
         if name in self._unbounded:
             return float("inf")
